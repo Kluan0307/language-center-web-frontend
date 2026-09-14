@@ -16,7 +16,7 @@ export const SidebarContainer = styled.aside`
 export const SidebarTop = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     overflow: hidden;
     flex: 1;
 `;
@@ -25,9 +25,8 @@ export const Header = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 6px 8px;
+    padding: 6px 8px 16px 8px;
     border-bottom: 1px solid #F1F5F9;
-    padding-bottom: 16px;
 `;
 
 export const AvatarWrapper = styled.div`
@@ -87,6 +86,16 @@ export const Menu = styled.nav`
         background: #E2E8F0;
         border-radius: 4px;
     }
+`;
+
+export const MenuGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    & + & {
+        margin-top: 10px;
+    }
 
     ul {
         list-style: none;
@@ -94,7 +103,7 @@ export const Menu = styled.nav`
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 2px;
     }
 
     li {
@@ -132,6 +141,16 @@ export const Menu = styled.nav`
             font-weight: 600;
         }
     }
+`;
+
+export const GroupLabel = styled.p`
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #94A3B8;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin: 6px 0 4px 12px;
+    padding: 0;
 `;
 
 export const SidebarBottom = styled.div`

@@ -4,6 +4,7 @@ import * as S from './Login.styles';
 import LoginForm from '../../components/Layout/LoginForm';
 import { useAuth } from '../../hooks/useAuth';
 import type { LoginPayload } from '../../types';
+import bgLogin from '../../assets/images/background-login.svg';
 
 function Login() {
     const navigate = useNavigate();
@@ -43,6 +44,10 @@ function Login() {
     return (
         <S.LoginContainer>
             <S.LoginLeft>
+                <S.LoginLeftContent>
+                    <S.LoginBrand>Language Center Management</S.LoginBrand>
+                    <img src={bgLogin} alt="Minh hoạ đăng nhập" />
+                </S.LoginLeftContent>
             </S.LoginLeft>
 
             <S.LoginRight>
