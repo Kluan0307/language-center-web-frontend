@@ -25,9 +25,14 @@ export const PrimaryButton = styled.button`
     }
 
     &:disabled {
-        background-color: #93C5FD;
+        background-color: #94A3B8;
+        color: #F8FAFC;
         cursor: not-allowed;
+        opacity: 0.75;
+        transform: none;
+        box-shadow: none;
     }
+
 `;
 
 export const SecondaryButton = styled.button`

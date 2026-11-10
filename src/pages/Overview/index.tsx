@@ -1,16 +1,4 @@
-import * as S from './Overview.styles';
-import Sidebar from '../../components/Layout/Sidebar';
-
-function Overview() {
-
-    return (
-        <S.OverviewContainer>
-            <Sidebar />
-            <S.MainContent>
-                <p>Đây là overview</p>
-            </S.MainContent>
-        </S.OverviewContainer>
-    );
-}
-
-export default Overview;
+import {useAuth} from '../../hooks/useAuth';
+import TeacherDashboard from './TeacherDashboard';
+import OperationsDashboard from './OperationsDashboard';
+export default function Overview(){const {user}=useAuth();return user?.role==='TEACHER'?<TeacherDashboard/>:<OperationsDashboard/>;}

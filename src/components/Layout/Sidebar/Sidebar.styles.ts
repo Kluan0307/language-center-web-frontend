@@ -1,9 +1,20 @@
 import styled from 'styled-components';
 
+export const DesktopSlot = styled.div`
+    flex: 0 0 260px;
+    width: 260px;
+    @media (max-width: 900px) { display: none; }
+`;
+
 export const SidebarContainer = styled.aside`
+    @media (max-width: 900px) { display: none; }
     width: 260px;
     min-width: 260px;
-    height: 100vh;
+    height: 100dvh;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 100;
+    flex-shrink: 0;
     background-color: #FFFFFF;
     border-right: 1px solid #E2E8F0;
     display: flex;
@@ -18,6 +29,7 @@ export const SidebarTop = styled.div`
     flex-direction: column;
     gap: 16px;
     overflow: hidden;
+    min-height: 0;
     flex: 1;
 `;
 
@@ -75,7 +87,9 @@ export const UserRole = styled.p`
 
 export const Menu = styled.nav`
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    overscroll-behavior-y: contain;
     padding-right: 4px;
 
     &::-webkit-scrollbar {
@@ -176,4 +190,12 @@ export const LogoutButton = styled.button`
     &:hover {
         background-color: #FEF2F2;
     }
+`;
+export const MobileBar = styled.div`
+ display:none;
+ @media(max-width:900px){
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:fixed;inset:0 0 auto 0;height:56px;padding:8px 16px;background:#fff;
+  border-bottom:1px solid #e2e8f0;z-index:900;
+ }
 `;

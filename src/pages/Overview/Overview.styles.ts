@@ -8,8 +8,11 @@ export const OverviewContainer = styled.div`
 `;
 
 export const MainContent = styled.main`
+
     flex: 1;
+    min-width: 0;
     padding: 32px;
+    @media (max-width: 900px) { padding-top: 80px; }
     display: flex;
     flex-direction: column;
 `;

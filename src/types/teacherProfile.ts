@@ -1,0 +1,4 @@
+export interface TeacherProfile {profileId:number;accountId:number;username:string;accountActive:boolean;branchIds:number[];canManage:boolean;version:number;fullName:string;email:string|null;phone:string|null;specialization:string|null;qualification:string|null;experience:string|null;certificate:string|null;hireDate:string|null;workStatus:string|null}
+export interface TeacherProfileUpdate {version:number;fullName:string;email?:string|null;phone?:string|null;specialization?:string|null;qualification?:string|null;experience?:string|null;certificate?:string|null;hireDate?:string|null}
+export interface TeacherProfileEvent {id:number;action:string;beforeState:string;afterState:string;reason:string|null;actorId:number;actorName:string;teacherVersion:number;occurredAt:string}
+export interface TeacherResponsibility {kind:'CLASS'|'SESSION';id:number;branchId:number;classId:number;classCode:string;label:string;date:string;status:string;version:number|null}

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CaptchaCode from 'react-captcha-code';
 import * as S from './LoginForm.styles';
@@ -6,10 +6,11 @@ import { PrimaryButton, Input } from '../../Common';
 import type { LoginPayload } from '../../../types';
 
 interface LoginFormProps {
-    onSubmit?: (credentials: LoginPayload) => void | Promise<any>;
+    onSubmit?: (credentials: LoginPayload, remember: boolean) => void | Promise<void>;
     errorMessage?: string;
     isLoading?: boolean;
 }
+
 
 function LoginForm({ onSubmit, errorMessage, isLoading }: LoginFormProps) {
     const [username, setUsername] = useState('');
@@ -33,17 +34,18 @@ function LoginForm({ onSubmit, errorMessage, isLoading }: LoginFormProps) {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (isLoading) return;
 
         if (captchaInput.trim().toLowerCase() !== captchaValue.toLowerCase()) {
-            setCaptchaError('Mã xác thực không đúng. Vui lòng thử lại!');
             handleRefreshCaptcha();
+            setCaptchaError('Mã xác thực không đúng. Vui lòng thử lại!');
             return;
         }
 
         setCaptchaError('');
 
         if (onSubmit) {
-            onSubmit({ username, password });
+            onSubmit({ username, password }, rememberMe);
         } else {
             navigate('/overview');
         }
@@ -126,7 +128,7 @@ function LoginForm({ onSubmit, errorMessage, isLoading }: LoginFormProps) {
 
                 {errorMessage && <S.ErrorMessage>{errorMessage}</S.ErrorMessage>}
 
-                <S.ForgotPasswordLink href="#">Quên mật khẩu?</S.ForgotPasswordLink>
+                <p style={{ fontSize: 13, color: '#64748b' }}>Quên mật khẩu? Liên hệ người quản lý để được hỗ trợ.</p>
 
                 <PrimaryButton type="submit" disabled={isLoading}>
                     {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
