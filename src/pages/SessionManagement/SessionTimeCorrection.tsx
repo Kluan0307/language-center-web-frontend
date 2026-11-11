@@ -35,7 +35,7 @@ function CorrectionForm({
         showIcon
         type="warning"
         title="Thao tác thay đổi tổng phút đã học"
-        description="Cần lý do và phiên bản hiện hành. Nếu có kết quả chính thức, mở lại toàn lớp trước. Ngày học, giáo viên và điểm danh được giữ."
+        description="Nhập lý do điều chỉnh thời lượng. Nếu lớp đã chốt kết quả, cần mở lại trước khi sửa."
       />
       {error && <Alert type="error" title={error} />}
       <Form

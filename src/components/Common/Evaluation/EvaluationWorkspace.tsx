@@ -159,8 +159,8 @@ function PolicyForm({
       <Alert
         type="info"
         showIcon
-        title="Quy tắc chỉ áp dụng cho lớp đang chọn, mỗi xác nhận lưu một phiên bản."
-        description="Chọn bài áp dụng, đánh dấu bắt buộc và kiểm tra trọng số. Thang điểm lấy từ bài kiểm tra; không tự coi bài cũ là bắt buộc hoặc mặc định chuẩn50%."
+        title="Thiết lập quy tắc đánh giá cho lớp đang chọn."
+        description="Chọn bài kiểm tra, trọng số, ngưỡng đạt và yêu cầu chuyên cần."
       />
       {error && <Alert type="error" title={error} />}{" "}
       {exams.error && (

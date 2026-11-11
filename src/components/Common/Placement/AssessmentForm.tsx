@@ -88,7 +88,7 @@ export default function AssessmentForm({
         description={
           copy
             ? "Đang tạo bản thay thế từ dữ liệu cũ. Kiểm tra lại ngày, người đánh giá và nguồn; không ghi đè kết quả hiện hành."
-            : "Không tự quy đổi điểm sang trình độ hoặc dùng text trình độ cũ làm chứng nhận."
+            : "Chọn trình độ theo kết luận của người đánh giá và ghi rõ căn cứ."
         }
       />
       {error && <Alert type="error" showIcon title={error} />}{" "}

@@ -1,3 +1,4 @@
+import AuditComparison from '../AuditComparison';
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -242,7 +243,7 @@ export function ExceptionList({
                   key: "fingerprint",
                   label: "Kiểm soát thay đổi",
                   children:
-                    "Căn cứ và phiên bản được kiểm tra lại khi duyệt và sử dụng.",
+                    "Điều kiện được kiểm tra lại trước khi duyệt và đăng ký.",
                 },
               ]}
             />
@@ -363,7 +364,7 @@ export default function EnrollmentPlacement({
               },
               {
                 key: "legacy",
-                label: "Text cũ (tham khảo)",
+                label: "Trình độ ghi nhận ban đầu",
                 children: p.legacyLevel || "—",
               },
               {
@@ -501,11 +502,11 @@ export function EnrollmentAdmissionHistory({
         locale={{
           emptyText: history.error
             ? "Chưa tải được căn cứ"
-            : "LEGACY_UNVERIFIED — đăng ký cũ chưa có snapshot căn cứ",
+            : "Chưa có thông tin xác nhận đầu vào cho đăng ký này",
         }}
         columns={[
-          { title: "Thao tác", dataIndex: "intent" },
-          { title: "Cách chấp nhận", dataIndex: "academicStatus" },
+          { title: "Thao tác", dataIndex: "intent", render: (v: string) => ({ ENROLL: "Đăng ký lớp", RESUME: "Học lại", TRANSFER: "Chuyển lớp" })[v] ?? "Thay đổi đăng ký" },
+          { title: "Cách chấp nhận", dataIndex: "academicStatus", render: (v: string) => v === "EXCEPTION" ? "Được duyệt ngoại lệ" : academic[v] ?? "Chưa xác nhận" },
           { title: "Xác nhận ngoại lệ", dataIndex: "approvalId" },
           { title: "Người thực hiện", dataIndex: "actorName" },
           {
@@ -514,19 +515,8 @@ export function EnrollmentAdmissionHistory({
             render: (v) => displayDate(v),
           },
         ]}
-        expandable={{
-          expandedRowRender: (a) => (
-            <>
-              <Typography.Paragraph style={{ whiteSpace: "pre-wrap" }}>
-                Điều kiện: {a.policySnapshot}
-              </Typography.Paragraph>
-              <Typography.Paragraph style={{ whiteSpace: "pre-wrap" }}>
-                Đánh giá: {a.assessmentSnapshot}
-              </Typography.Paragraph>
-            </>
-          ),
-        }}
-      />
+        
+       expandable={{ expandedRowRender: row => (<Space orientation="vertical" style={{width:'100%'}}><Typography.Text strong>Điều kiện tại thời điểm đăng ký</Typography.Text><AuditComparison single after={row.policySnapshot}/><Typography.Text strong>Đánh giá đầu vào được sử dụng</Typography.Text><AuditComparison single after={row.assessmentSnapshot}/></Space>) }} />
     </>
   );
 }

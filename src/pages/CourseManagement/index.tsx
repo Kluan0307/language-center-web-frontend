@@ -25,7 +25,7 @@ import {
   canPlan,
   money,
 } from "../../utils/academic";
-import ProgramCatalog from "../../components/Common/Placement/ProgramCatalog";
+import { Link } from "react-router-dom";
 import { CourseAdmissionPanel } from "../../components/Common/Placement/AdmissionPanel";
 import type {
   CourseDto,
@@ -44,7 +44,6 @@ export default function CourseManagement() {
   const [editing, setEditing] = useState<CourseDto | null>(null);
   const [detail, setDetail] = useState<CourseDto | null>(null);
   const [open, setOpen] = useState(false);
-  const [catalogOpen, setCatalogOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [error, setError] = useState<string>();
@@ -227,9 +226,7 @@ export default function CourseManagement() {
       actions={
         <>
           {user.role === "SUPER_ADMIN" && (
-            <Button onClick={() => setCatalogOpen(true)}>
-              Chương trình và trình độ
-            </Button>
+            <Link to="/programs"><Button>Chương trình và trình độ</Button></Link>
           )}
           <Button
             icon={<RefreshCw size={16} />}
@@ -411,7 +408,7 @@ export default function CourseManagement() {
             <Col xs={24} sm={12}>
               <Form.Item
                 name="level"
-                label="Trình độ text cũ (tham khảo)"
+                label="Trình độ ghi nhận ban đầu"
                 rules={[{ max: 255 }]}
               >
                 <Input maxLength={255} placeholder="Ví dụ: A1, B1, IELTS 5.5" />
@@ -482,7 +479,7 @@ export default function CourseManagement() {
           </Row>
           <Form.Item
             name="entryRequirement"
-            label="Điều kiện text cũ (tham khảo)"
+            label="Yêu cầu đầu vào tham khảo"
           >
             <Input.TextArea rows={2} />
           </Form.Item>
@@ -577,12 +574,6 @@ export default function CourseManagement() {
           </>
         )}
       </Drawer>
-      {catalogOpen && (
-        <ProgramCatalog
-          onClose={() => setCatalogOpen(false)}
-          onChanged={list.reload}
-        />
-      )}
     </ManagementLayout>
   );
 }

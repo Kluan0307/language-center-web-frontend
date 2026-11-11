@@ -112,7 +112,7 @@ function CatalogForm({
         {level && (
           <Form.Item
             name="rank"
-            label="Thứ tự hiển thị (không tự suy ra điều kiện đầu vào)"
+            label="Thứ tự hiển thị"
             rules={[{ required: true }]}
           >
             <InputNumber min={0} max={2147483647} precision={0} />
@@ -132,7 +132,9 @@ function CatalogForm({
 export default function ProgramCatalog({
   onClose,
   onChanged,
+  embedded = false,
 }: {
+  embedded?: boolean;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -151,21 +153,16 @@ export default function ProgramCatalog({
     levels.reload();
     onChanged();
     message.success(
-      "Đã lưu danh mục. Điều kiện và đánh giá đã xác nhận giữ nguyên snapshot.",
+      "Đã lưu danh mục chương trình và trình độ.",
     );
   }
-  return (
-    <Drawer
-      open
-      width={960}
-      title="Chương trình và thang trình độ"
-      onClose={onClose}
-    >
+  const content = (
+    <>
       <Alert
         showIcon
         type="info"
         title="Danh mục do quản trị toàn hệ thống quản lý."
-        description="Mã là định danh trong chương trình. Không tự quy đổi giữa IELTS, TOEIC hoặc các thang khác; đổi tên/đóng danh mục không viết lại dữ liệu đã xác nhận."
+        description="Quản lý các chương trình đào tạo và trình độ tương ứng."
       />
       <Space orientation="vertical" style={{ width: "100%" }}>
         <Button
@@ -266,6 +263,7 @@ export default function ProgramCatalog({
           onSaved={saved}
         />
       )}
-    </Drawer>
+    </>
   );
+  return embedded ? content : <Drawer open width={960} title="Chương trình và thang trình độ" onClose={onClose}>{content}</Drawer>;
 }

@@ -7,6 +7,7 @@ export function getErrorMessage(error: unknown): string {
       ? 'Yêu cầu quá thời gian chờ. Hãy tải lại dữ liệu để kiểm tra kết quả trước khi thử lại.'
       : 'Không kết nối được máy chủ. Vui lòng kiểm tra kết nối và thử lại.';
     if (error.response.status === 401 && error.config?.url === '/auth/login') return 'Sai tên đăng nhập hoặc mật khẩu.';
+    if (error.response.status >= 500) return 'Dịch vụ đang gặp sự cố. Vui lòng thử lại sau.';
     const body: unknown = error.response.data;
     if (body && typeof body === 'object' && 'message' in body && typeof body.message === 'string') {
       const messages: Record<string, string> = {
@@ -14,7 +15,7 @@ export function getErrorMessage(error: unknown): string {
         'Tuition is cancelled': 'Khoản học phí đã bị hủy, không thể thu tiền.',
         'Cancelled tuition': 'Không thể điều chỉnh học phí đã bị hủy.',
         'Adjusted tuition cannot be below collected amount': 'Số phải thu sau điều chỉnh không được thấp hơn số tiền đã thu.',
-        'requestKey was used for a different payment': 'requestKey đã gắn với một khoản thu khác. Cần kiểm tra phiếu thu trước khi tiếp tục.',
+        'requestKey was used for a different payment': 'Yêu cầu này đã được dùng cho một khoản thu khác. Vui lòng kiểm tra phiếu thu trước khi tiếp tục.',
         'Use CASH or BANK_TRANSFER': 'Chỉ hỗ trợ tiền mặt hoặc chuyển khoản.',
         'Teacher must select a class': 'Chọn lớp được phân công trước khi xem bài kiểm tra.',
         'Date is not a scheduled class session': 'Ngày được chọn không phải buổi học theo lịch của lớp.',

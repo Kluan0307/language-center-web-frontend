@@ -33,7 +33,7 @@ export function PolicyDescription({ policy }: { policy: AdmissionPolicy }) {
       type="warning"
       showIcon
       title="Chưa xác minh điều kiện đầu vào"
-      description="Thông tin text cũ chưa được tự chuyển thành trình độ/điều kiện đã xác nhận."
+      description="Vui lòng xác nhận chương trình và điều kiện đầu vào trước khi sử dụng."
     />
   ) : (
     <Descriptions
@@ -148,8 +148,8 @@ function PolicyForm({
       <Alert
         showIcon
         type="info"
-        title="Đầu ra không phải điều kiện đầu vào."
-        description="Mỗi lần xác nhận tạo một phiên bản. Các lớp đã mở giữ bản riêng; dữ liệu cũ không được tự quy đổi."
+        title="Chọn riêng trình độ đầu vào được chấp nhận và trình độ đầu ra của khóa học."
+        description="Điều kiện mới áp dụng cho các lớp mở sau khi xác nhận."
       />
       {error && <Alert type="error" showIcon title={error} />}{" "}
       {(programs.error || levels.error) && (
@@ -307,7 +307,7 @@ export function CourseAdmissionPanel({ id }: { id: number }) {
           <PolicyDescription policy={view.data.policy} />
           {view.data.policy.mode === "UNVERIFIED" && (
             <Typography.Paragraph type="secondary">
-              Tham khảo text cũ: {view.data.legacyType || "—"} /{" "}
+              Thông tin tham khảo: {view.data.legacyType || "—"} /{" "}
               {view.data.legacyLevel || "—"} /{" "}
               {view.data.legacyEntryRequirement || "—"}
             </Typography.Paragraph>
@@ -349,7 +349,7 @@ export function CourseAdmissionPanel({ id }: { id: number }) {
                 view.reload();
                 history.reload();
                 message.success(
-                  "Đã xác nhận phiên bản điều kiện mới. Các lớp cũ giữ nguyên.",
+                  "Đã cập nhật điều kiện đầu vào.",
                 );
               }}
             />

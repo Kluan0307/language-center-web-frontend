@@ -54,6 +54,8 @@ export const NAVIGATION: readonly NavigationItem[] = [
     description: 'Chăm sóc Lead và chuyển đổi thành học viên.' },
   { id: 'students', path: '/students', label: 'Học viên', group: 'TUYỂN SINH', icon: 'students', roles: OPERATIONS,
     description: 'Quản lý hồ sơ và theo dõi lịch sử đăng ký của học viên.' },
+  { id: 'programs', path: '/programs', label: 'Chương trình & trình độ', group: 'HỌC VỤ', icon: 'courses', roles: ['SUPER_ADMIN'],
+    description: 'Quản lý chương trình đào tạo và thang trình độ.' },
   { id: 'courses', path: '/courses', label: 'Khóa học', group: 'HỌC VỤ', icon: 'courses', roles: OPERATIONS,
     description: 'Quản lý khóa học trong phạm vi được phép.',
     roleDescriptions: { SUPER_ADMIN: 'Quản lý khóa học chung và khóa học chi nhánh, bao gồm học phí.',

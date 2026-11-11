@@ -415,7 +415,7 @@ export default function StudentManagement() {
                         },
                         {
                           key: "level",
-                          label: "Trình độ text cũ (tham khảo)",
+                          label: "Trình độ ghi nhận ban đầu",
                           children: s.currentLevel || "—",
                         },
                         {

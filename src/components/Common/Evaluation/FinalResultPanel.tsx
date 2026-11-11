@@ -31,7 +31,7 @@ function SnapshotView({ snapshot }: { snapshot: string }) {
     return (
       <Alert
         type="error"
-        title="Không đọc được bằng chứng đã lưu; liên hệ quản lý để đối soát."
+        title="Không tải được chi tiết kết quả. Vui lòng liên hệ quản lý."
       />
     );
   }
@@ -51,7 +51,7 @@ function SnapshotView({ snapshot }: { snapshot: string }) {
                 " · Ngưỡng " +
                 data.policy.passPercent +
                 "%"
-              : "Không có snapshot quy tắc trong phiên bản cũ",
+              : "Chưa có thông tin quy tắc đánh giá",
           },
           {
             key: "score",
@@ -168,7 +168,7 @@ function ConfirmResult({
           ))}
           <Alert
             type="info"
-            title="Chốt lưu ảnh chụp kết quả và khóa nguồn toàn lớp. Hoàn thành đăng ký là bước đồng bộ riêng, không tự thay đổi học phí."
+            title="Chốt kết quả sẽ khóa chỉnh sửa dữ liệu đánh giá của lớp. Sau đó, xác nhận hoàn thành cho từng đăng ký."
             showIcon
           />
           <Form
@@ -320,7 +320,7 @@ export default function FinalResultPanel({
         type="info"
         showIcon
         title="Kết quả cuối khóa"
-        description="Chưa chốt và kết quả tạm tính được hiển thị riêng. Kết quả cũ không có bằng chứng được giữ là chưa xác minh. Mở lại áp dụng toàn lớp vì điểm danh, quy tắc và thời lượng là nguồn dùng chung."
+        description="Kiểm tra kết quả tạm tính trước khi chốt. Nếu cần sửa dữ liệu sau khi chốt, hãy mở lại kết quả của lớp."
       />
       <Space wrap>
         <Button onClick={reload}>Tải lại kết quả</Button>

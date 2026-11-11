@@ -56,7 +56,7 @@ export default function StudentForm({ editing, defaultBranchId, onClose, onSaved
           { value: 'MALE', label: 'Nam' }, { value: 'FEMALE', label: 'Nữ' }, { value: 'OTHER', label: 'Khác' },
         ]} /></Form.Item></Col>
         <Col xs={24} sm={12}><Form.Item name="email" label="Email" rules={[{ type: 'email', message: 'Email không hợp lệ.' }, { max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
-        <Col xs={24} sm={12}><Form.Item name="currentLevel" label="Trình độ text cũ (tham khảo)" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
+        <Col xs={24} sm={12}><Form.Item name="currentLevel" label="Trình độ ghi nhận ban đầu" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
         <Col xs={24} sm={12}><Form.Item name="guardianName" label="Người giám hộ" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
         <Col xs={24} sm={12}><Form.Item name="guardianPhone" label="Điện thoại người giám hộ" rules={[{ max: 30 }]}><Input maxLength={30} /></Form.Item></Col>
         <Col span={24}><Form.Item name="contactPerson" label="Liên hệ bổ sung" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>

@@ -1,5 +1,5 @@
 import {Link} from 'react-router-dom';
-import {Alert,Button,Card,Space,Table,Typography} from 'antd';
+import {Alert,Button,Card,Space,Table} from 'antd';
 import {ManagementLayout} from '../../components/Layout/ManagementLayout';
 import {LoadError} from '../../components/Common/Academic';
 import {Metric} from '../../components/Common/Reports';
@@ -39,7 +39,6 @@ export default function TeacherDashboard(){
     ]}/>
   </Card>
   <Card title="Công việc thường dùng"><Space wrap><Link to="/my-classes"><Button>Lớp của tôi</Button></Link><Link to="/exams"><Button>Bài kiểm tra</Button></Link><Link to="/documents"><Button>Tài liệu của tôi</Button></Link></Space>
-   <Typography.Paragraph type="secondary" style={{marginTop:16,marginBottom:0}}>Số liệu chỉ lấy các lớp/lịch được backend phân quyền cho tài khoản hiện tại.</Typography.Paragraph>
   </Card>
  </ManagementLayout>;
 }

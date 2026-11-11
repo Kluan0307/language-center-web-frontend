@@ -46,8 +46,8 @@ export default function CompletionPanel({
         }
         description={
           (linked
-            ? "Đã đồng bộ đúng phiên bản. "
-            : "Chưa đồng bộ phiên bản kết quả hiện hành. ") +
+            ? "Đã cập nhật kết quả hiện hành. "
+            : "Cần cập nhật kết quả hiện hành. ") +
           "Hoàn thành đăng ký xác nhận đã kết thúc quá trình học. Bước này không thay đổi học phí và không đồng nghĩa đạt khóa học."
         }
       />

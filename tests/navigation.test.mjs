@@ -10,7 +10,7 @@ const { outputText } = ts.transpileModule(source, { compilerOptions: {
 const navigation = await import('data:text/javascript;base64,' + Buffer.from(outputText).toString('base64'));
 const { NAVIGATION, ROLES, getNavigation, getNavigationGroups, canAccess, isRole, getItemLabel } = navigation;
 const expected = {
-  SUPER_ADMIN: ['dashboard','branches','administrators','accounts','teachers','staff','leads','students','courses','classes','rooms','schedule','enrollment','attendance','exams','grades','documents','tuition','payments','reports'],
+  SUPER_ADMIN: ['dashboard','branches','administrators','accounts','teachers','staff','leads','students','programs','courses','classes','rooms','schedule','enrollment','attendance','exams','grades','documents','tuition','payments','reports'],
   ADMIN: ['dashboard','accounts','teachers','staff','leads','students','courses','classes','rooms','schedule','enrollment','attendance','exams','grades','documents','tuition','payments','reports'],
   STAFF: ['dashboard','teachers','leads','students','courses','classes','rooms','schedule','enrollment','attendance','documents','tuition','payments'],
   TEACHER: ['dashboard','my-classes','my-schedule','attendance','exams','grades','documents'],

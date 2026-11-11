@@ -34,14 +34,14 @@ export default function ClassClosurePanel({
             <Alert
               type="warning"
               showIcon
-              title="Bằng chứng đóng lớp đã thay đổi sau khi mở lại kết quả; cần mở lớp và đối soát lại."
+              title="Kết quả đã thay đổi. Cần mở lại lớp để kiểm tra trước khi đóng."
             />
           )}
           {c.verification === "LEGACY_UNVERIFIED" && (
             <Alert
               type="warning"
               showIcon
-              title="Lớp đóng từ dữ liệu cũ chưa có bằng chứng đối soát"
+              title="Chưa xác nhận điều kiện kết thúc lớp"
             />
           )}
           <Alert

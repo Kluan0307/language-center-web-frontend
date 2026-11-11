@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
+import AuditComparison from '../AuditComparison';
 import TableActions from '../TableActions';
 import { useState } from "react";
 import {
@@ -59,7 +62,7 @@ function ActionForm({
     <Modal
       open
       title={
-        action === "confirm" ? "Xác nhận nguồn đánh giá" : "Thu hồi đánh giá"
+        action === "confirm" ? "Xác nhận đánh giá đầu vào" : "Thu hồi đánh giá"
       }
       okText={action === "confirm" ? "Xác nhận đánh giá" : "Thu hồi"}
       cancelText="Hủy"
@@ -118,7 +121,7 @@ function ActionForm({
       >
         <Form.Item
           name="reason"
-          label="Lý do / nguồn đã xác minh"
+          label="Lý do / căn cứ xác nhận"
           rules={[
             { required: true, whitespace: true },
             { min: 3, max: 500 },
@@ -137,6 +140,7 @@ export default function StudentAssessments({
   studentId: number;
   legacyLevel: string | null;
 }) {
+  const { user } = useAuth();
   const [query, setQuery] = useState<{
     page: number;
     size: number;
@@ -174,7 +178,7 @@ export default function StudentAssessments({
     list.reload();
     setRevision((v) => v + 1);
     message.success(
-      "Đã lưu đánh giá; kiểm tra trạng thái hiện hành và lịch sử.",
+      "Đã lưu đánh giá đầu vào.",
     );
   }
   async function edit(
@@ -196,15 +200,16 @@ export default function StudentAssessments({
   }
   return (
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <Alert
+      {legacyLevel && <Alert
         showIcon
         type="info"
         title={
-          "Trình độ text cũ (chưa xác minh): " + (legacyLevel || "chưa có")
+          "Trình độ ghi nhận ban đầu (tham khảo): " + (legacyLevel || "chưa có")
         }
-        description="Kết quả hiện hành được quản lý riêng theo từng chương trình. Bản nháp không có hiệu lực; không tự quy đổi điểm hoặc thay thông tin text cũ."
-      />
+        description="Để xét đầu vào, sử dụng kết quả đã xác nhận theo từng chương trình."
+      />}
       <Space wrap>
+        {user?.role === 'SUPER_ADMIN' && <Link to="/programs"><Button>Chương trình & trình độ</Button></Link>}
         <Button type="primary" onClick={() => setForm({ editing: null })}>
           Thêm đánh giá
         </Button>
@@ -246,7 +251,7 @@ export default function StudentAssessments({
             render: (v) => displayDate(v, false),
           },
           { title: "Người đánh giá", dataIndex: "assessorName" },
-          { title: "Người xác nhận nguồn", dataIndex: "confirmedByName" },
+          { title: "Người xác nhận", dataIndex: "confirmedByName" },
         ]}
       />
       <Space wrap>
@@ -434,19 +439,8 @@ export default function StudentAssessments({
               render: (v) => displayDate(v),
             },
           ]}
-          expandable={{
-            expandedRowRender: (e) => (
-              <>
-                <Typography.Paragraph style={{ whiteSpace: "pre-wrap" }}>
-                  Trước: {e.beforeState || "Chưa có"}
-                </Typography.Paragraph>
-                <Typography.Paragraph style={{ whiteSpace: "pre-wrap" }}>
-                  Sau: {e.afterState}
-                </Typography.Paragraph>
-              </>
-            ),
-          }}
-        />
+          
+         expandable={{ expandedRowRender: row => (<AuditComparison before={row.beforeState} after={row.afterState}/>) }} />
       </Drawer>
       {form && (
         <AssessmentForm

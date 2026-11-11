@@ -1,9 +1,13 @@
+﻿import { loadSchedule } from './scheduleData';
+import { readScheduleState, updateScheduleParams } from '../../utils/scheduleView';
+import { authService } from '../../services/authService';
+import SessionCalendar from './SessionCalendar';
 import TableActions from '../../components/Common/TableActions';
 import { ClassTimeProgress } from "../../components/Common/Placement/DurationPanel";
 import { durationLabel, sessionMinutes } from "../../utils/duration";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Alert, App, Button, Card, DatePicker, Select, Table, Tag, Typography } from "antd";
+import { Alert, App, Button, Card, DatePicker, Select, Table, Tag, Typography, Segmented } from "antd";
 import dayjs from "dayjs";
 import {
   ManagementLayout,
@@ -14,9 +18,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { useBranches } from "../../hooks/useBranches";
 import { useRemoteResource } from "../../hooks/useRemoteResource";
 import { sessionService } from "../../services/sessionService";
-import { classService } from "../../services/academicService";
+import { classService, roomService } from "../../services/academicService";
 import { businessDate, branchLabel } from "../../utils/academic";
-import { positiveId } from "../../utils/admissions";
+
 import { displayDate } from "../../utils/display";
 import { getErrorMessage } from "../../utils/apiErrors";
 import {
@@ -29,27 +33,39 @@ import type { EditMode } from "./SessionEditor";
 import GenerateSessions from "./GenerateSessions";
 import SessionDetails from "./SessionDetails";
 import type { ClassSession, SessionQuery } from "../../types/session";
+async function loadFilterTeachers({ branchId, enabled }: { branchId?: number; enabled: boolean }, signal?: AbortSignal) {
+  return enabled ? authService.teachers({ branchId }, signal) : [];
+}
+async function loadFilterRooms({ branchId, enabled }: { branchId?: number; enabled: boolean }, signal?: AbortSignal) {
+  return enabled ? roomService.all({ branchId }, signal) : [];
+}
 export default function SessionManagement() {
   const { user } = useAuth();
   const { message } = App.useApp();
   const [params, setParams] = useSearchParams();
-  const classId = positiveId(params.get("classId"));
-  const manager = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
-  const teacher = user?.role === "TEACHER";
+  const [defaultView] = useState<'week' | 'day'>(() => window.matchMedia('(max-width: 767px)').matches ? 'day' : 'week');
   const today = businessDate();
-  const [query, setQuery] = useState<SessionQuery>({
-    page: 0,
-    size: 10,
-    from: dayjs(today).subtract(7, "day").format("YYYY-MM-DD"),
-    to: dayjs(today).add(30, "day").format("YYYY-MM-DD"),
-  });
+  const state = readScheduleState(params, today, defaultView);
+  const { query, roomId, date, calendarView, display: displayMode } = state;
+  const classId = query.classId;
+  const manager = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const teacher = user?.role === 'TEACHER';
   const valid = !query.from || !query.to || query.from <= query.to;
-  const list = useRemoteResource(sessionService.list, { ...query, classId });
+  const [timeRevision, setTimeRevision] = useState(0);
+  const updateParams = (patch: Record<string, string | number | undefined>) =>
+    setParams(previous => updateScheduleParams(previous, { calendarView, date, display: displayMode, ...patch }));
+  const setDisplayMode = (display: string) => updateParams({ display });
+  const setQuery = (change: (previous: SessionQuery) => SessionQuery) => {
+    const next = change(query);
+    updateParams({ ...next, from: next.from ?? '', to: next.to ?? '' });
+  };
+  const list = useRemoteResource(loadSchedule, { display: displayMode, date, calendarView, query, roomId, revision: timeRevision });
+  const teachers = useRemoteResource(loadFilterTeachers, { branchId: query.branchId, enabled: !teacher });
+  const rooms = useRemoteResource(loadFilterRooms, { branchId: query.branchId, enabled: !teacher });
   const classes = useRemoteResource(classService.all, {
     branchId: query.branchId,
   });
   const branches = useBranches();
-  const [timeRevision, setTimeRevision] = useState(0);
   const [editing, setEditing] = useState<{
     session: ClassSession;
     mode: EditMode;
@@ -63,12 +79,21 @@ export default function SessionManagement() {
       { value: c.id, label: c.code + " · " + c.name },
     ]),
   );
-  list.data?.content.forEach((s) =>
+  list.data?.options.forEach((s) =>
     classOptions.set(s.classId, {
       value: s.classId,
       label: s.classCode + " · " + s.className,
     }),
   );
+  const roomOptions = new Map(rooms.data?.map(r => [r.id, { value: r.id, label: r.code + ' · ' + r.name }]));
+  const teacherOptions = new Map(teachers.data?.map(t => [t.profileId, { value: t.profileId, label: t.fullName }]));
+  list.data?.options.forEach(s => {
+    if (s.roomId) roomOptions.set(s.roomId, { value: s.roomId, label: s.roomName ?? 'Phòng #' + s.roomId });
+    if (s.teacherId) teacherOptions.set(s.teacherId, { value: s.teacherId, label: s.teacherName ?? 'Giáo viên #' + s.teacherId });
+  });
+  if (roomId && !roomOptions.has(roomId)) roomOptions.set(roomId, {value: roomId, label: 'Phòng #' + roomId});
+  if (query.teacherId && !teacherOptions.has(query.teacherId)) teacherOptions.set(query.teacherId, {value: query.teacherId, label: 'Giáo viên #' + query.teacherId});
+  if (classId && !classOptions.has(classId)) classOptions.set(classId, {value: classId, label: 'Lớp #' + classId});
   async function edit(s: ClassSession, mode: EditMode) {
     if (busy) return;
     setBusy(s.id);
@@ -83,14 +108,15 @@ export default function SessionManagement() {
   }
   return (
     <ManagementLayout
-      title={teacher ? "Lịch dạy thực tế" : "Buổi học thực tế"}
+      title={teacher ? "Lịch dạy của tôi" : "Lịch học"}
       description="Ngày, giờ, phòng và giáo viên thực tế của từng buổi; bao gồm học bù và dạy thay."
       actions={
         <>
           <Button
             onClick={() => {
               list.reload();
-              classes.reload();
+              classes.reload(); teachers.reload(); rooms.reload();
+              setTimeRevision(v => v + 1);
             }}
             loading={list.loading}
           >
@@ -118,20 +144,7 @@ export default function SessionManagement() {
         </>
       }
     >
-      <Alert
-        showIcon
-        type="info"
-        title={
-          teacher
-            ? "Bạn chỉ thấy các buổi thực tế được giao, kể cả dạy thay."
-            : "Lịch mẫu và buổi thực tế được quản lý riêng."
-        }
-        description={
-          teacher
-            ? "Dạy thay chỉ cấp quyền xem và điểm danh buổi đó; điểm và tài liệu của lớp vẫn theo giáo viên phụ trách."
-            : "Thay đổi lịch mẫu chỉ tác động các buổi từ ngày mai chưa chỉnh riêng hoặc điểm danh. Buổi đã lưu chỉ Admin sửa điểm danh với lý do."
-        }
-      />
+      
       {classId && (!teacher || classes.data?.some((c) => c.id === classId)) && (
         <Card>
           <ClassTimeProgress id={classId} revision={timeRevision} />
@@ -139,19 +152,21 @@ export default function SessionManagement() {
       )}
       <LoadError error={list.error} reload={list.reload} />
       <LoadError error={classes.error} reload={classes.reload} />
+      <LoadError error={teachers.error} reload={teachers.reload} />
+      <LoadError error={rooms.error} reload={rooms.reload} />
       <Card>
         <Filters>
+          <Segmented aria-label="Cách hiển thị lịch" value={displayMode} options={[{label: 'Lịch', value: 'calendar'}, {label: 'Danh sách', value: 'list'}]} onChange={setDisplayMode} />
           <BranchFilter
             branches={branches.data}
             value={query.branchId}
             onChange={(branchId) => {
-              setQuery((q) => ({ ...q, branchId, page: 0 }));
-              setParams({});
+              updateParams({ branchId, classId: undefined, teacherId: undefined, roomId: undefined, page: 0 });
             }}
           />
           <Select
             className="filter"
-            style={{ minWidth: 280 }}
+            style={{ minWidth: 200, maxWidth: '100%' }}
             aria-label="Lọc lớp buổi học"
             allowClear
             showSearch
@@ -160,11 +175,16 @@ export default function SessionManagement() {
             value={classId}
             options={[...classOptions.values()]}
             onChange={(id: number | undefined) => {
-              setParams(id ? { classId: String(id) } : {});
-              setQuery((q) => ({ ...q, page: 0 }));
+              updateParams({ classId: id, page: 0 });
             }}
           />
-          <DatePicker
+          {!teacher && <Select className="filter" aria-label="Lọc giáo viên" placeholder="Tất cả giáo viên" allowClear showSearch optionFilterProp="label"
+            value={query.teacherId} options={[...teacherOptions.values()]} loading={teachers.loading}
+            onChange={(teacherId: number | undefined) => updateParams({ teacherId, page: 0 })} />}
+          <Select className="filter" aria-label="Lọc phòng học" placeholder="Tất cả phòng" allowClear showSearch optionFilterProp="label"
+            value={roomId} options={[...roomOptions.values()]} loading={rooms.loading}
+            onChange={(roomId: number | undefined) => updateParams({ roomId, page: 0 })} />
+          {displayMode === 'list' && (<DatePicker
             aria-label="Buổi từ ngày"
             placeholder="Từ ngày"
             format="DD/MM/YYYY"
@@ -177,8 +197,8 @@ export default function SessionManagement() {
                 page: 0,
               }))
             }
-          />
-          <DatePicker
+          />)}
+          {displayMode === 'list' && (<DatePicker
             aria-label="Buổi đến ngày"
             placeholder="Đến ngày"
             format="DD/MM/YYYY"
@@ -187,7 +207,7 @@ export default function SessionManagement() {
             onChange={(d) =>
               setQuery((q) => ({ ...q, to: d?.format("YYYY-MM-DD"), page: 0 }))
             }
-          />
+          />)}
           <Select
             className="filter"
             aria-label="Trạng thái buổi"
@@ -200,14 +220,16 @@ export default function SessionManagement() {
             }))}
             onChange={(status) => setQuery((q) => ({ ...q, status, page: 0 }))}
           />
-          <Typography.Text type="secondary">
+          {displayMode === 'list' && (<Typography.Text type="secondary">
             {list.data?.totalElements ?? 0} buổi
-          </Typography.Text>
+          </Typography.Text>)}
         </Filters>
-        {!valid && (
+        {displayMode === 'list' && !valid && (
           <Alert type="warning" title="Từ ngày không được sau đến ngày" />
         )}
-        <Table<ClassSession>
+        {displayMode === 'calendar' ? <SessionCalendar sessions={list.data?.content ?? []} loading={list.loading} error={list.error}
+          date={date} view={calendarView} onDateChange={date => updateParams({ date })}
+          onViewChange={calendarView => updateParams({ calendarView })} onSelect={setDetail} /> : (<Table<ClassSession>
           rowKey="id"
           loading={list.loading}
           dataSource={valid ? (list.data?.content ?? []) : []}
@@ -355,7 +377,7 @@ export default function SessionManagement() {
                 size,
               })),
           }}
-        />
+        />)}
       </Card>
       {editing && (
         <SessionEditor
@@ -384,7 +406,10 @@ export default function SessionManagement() {
           }}
         />
       )}
-      {detail && <SessionDetails id={detail} onClose={() => setDetail(null)} />}
+      {detail && <SessionDetails id={detail} onClose={() => setDetail(null)}
+        onChanged={() => { list.reload(); setTimeRevision(v => v + 1); }}
+        onEdit={manager ? (session, mode) => { setDetail(null); void edit(session, mode); } : undefined} />}
     </ManagementLayout>
   );
 }
+

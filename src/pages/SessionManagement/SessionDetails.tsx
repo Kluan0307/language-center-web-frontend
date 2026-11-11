@@ -1,13 +1,15 @@
+import AuditComparison from '../../components/Common/AuditComparison';
+import type { ClassSession } from '../../types/session';
+import type { EditMode } from './SessionEditor';
 import SessionTimeCorrection from "./SessionTimeCorrection";
 import {
+  Button,
   Descriptions,
   Drawer,
   Space,
   Table,
   Tabs,
-  Tag,
-  Typography,
-} from "antd";
+  Tag, } from "antd";
 import { Link } from "react-router-dom";
 import { useRemoteResource } from "../../hooks/useRemoteResource";
 import { sessionService } from "../../services/sessionService";
@@ -31,9 +33,13 @@ const ACTIONS: Record<string, string> = {
 export default function SessionDetails({
   id,
   onClose,
+  onEdit,
+  onChanged,
 }: {
   id: number;
   onClose: () => void;
+  onEdit?: (session: ClassSession, mode: EditMode) => void;
+  onChanged?: () => void;
 }) {
   const detail = useRemoteResource(sessionService.detail, { id });
   const history = useRemoteResource(sessionService.history, { id });
@@ -51,6 +57,14 @@ export default function SessionDetails({
         <>
           <Space wrap style={{ marginBottom: 16 }}>
             <Tag>{SESSION_LABELS[s.status]}</Tag>
+            {onEdit && !s.classClosed && s.status === 'SCHEDULED' && <>
+              <Button size="small" onClick={() => onEdit(s, 'edit')}>Đổi lịch / dạy thay</Button>
+              <Button size="small" danger onClick={() => onEdit(s, 'cancel')}>Hủy buổi</Button>
+            </>}
+            {onEdit && !s.classClosed && s.status === 'CANCELLED' && <>
+              <Button size="small" onClick={() => onEdit(s, 'restore')}>Khôi phục</Button>
+              {s.kind === 'REGULAR' && !s.makeupSessionId && <Button size="small" onClick={() => onEdit(s, 'makeup')}>Học bù</Button>}
+            </>}
             {s.kind === "MAKEUP" && (
               <Tag color="cyan">Học bù cho #{s.makeupForId}</Tag>
             )}
@@ -65,6 +79,7 @@ export default function SessionDetails({
             onSaved={() => {
               detail.reload();
               history.reload();
+              onChanged?.();
             }}
           />
           <Descriptions
@@ -146,23 +161,8 @@ export default function SessionDetails({
                         { title: "Người thực hiện", dataIndex: "actorName" },
                         { title: "Lý do", dataIndex: "reason" },
                       ]}
-                      expandable={{
-                        expandedRowRender: (r) => (
-                          <>
-                            <Typography.Paragraph
-                              style={{ whiteSpace: "pre-wrap" }}
-                            >
-                              Trước: {r.beforeState ?? "Chưa có"}
-                            </Typography.Paragraph>
-                            <Typography.Paragraph
-                              style={{ whiteSpace: "pre-wrap" }}
-                            >
-                              Sau: {r.afterState}
-                            </Typography.Paragraph>
-                          </>
-                        ),
-                      }}
-                    />
+                      
+                     expandable={{ expandedRowRender: row => (<AuditComparison before={row.beforeState} after={row.afterState}/>) }} />
                   </>
                 ),
               },

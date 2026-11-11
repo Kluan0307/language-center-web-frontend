@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { Space, Tag, Typography } from 'antd';
 import Sidebar from '../Sidebar';
 import { useAuth } from '../../../hooks/useAuth';
-import { ROLE_LABELS } from '../../../config/navigation';
 import { branchService } from '../../../services/branchService';
 import { useRemoteResource } from '../../../hooks/useRemoteResource';
 import * as S from './ManagementLayout.styles';
@@ -21,7 +20,6 @@ export function ManagementLayout({ title, description, actions, children }: {
       <S.Header>
         <S.HeaderCopy>
           <Space size={8} wrap>
-            <Tag color="blue">{user ? ROLE_LABELS[user.role] : ''}</Tag>
             <Tag>{user?.role === 'SUPER_ADMIN' ? 'Toàn hệ thống'
               : branch.data ? `${branch.data.code} · ${branch.data.name}`
               : `Chi nhánh #${user?.branchId ?? '—'}`}</Tag>

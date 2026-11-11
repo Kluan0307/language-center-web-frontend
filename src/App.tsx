@@ -38,6 +38,7 @@ const BranchManagement = lazy(() => import('./pages/BranchManagement'));
 const TeacherDirectory = lazy(() => import('./pages/TeacherDirectory'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
 const Profile = lazy(() => import('./pages/Profile'));
+const ProgramManagement = lazy(() => import('./pages/ProgramManagement'));
 const CourseManagement = lazy(() => import('./pages/CourseManagement'));
 const ClassManagement = lazy(() => import('./pages/ClassManagement'));
 const RoomManagement = lazy(() => import('./pages/RoomManagement'));
@@ -59,7 +60,7 @@ function TeachersRoute() {
 const PAGES: Record<string, ReactNode> = {
   dashboard: <Overview />, leads: <LeadsPage />, students: <StudentManagement />,
   branches: <BranchManagement />, administrators: <AccountManagement key="administrators" fixedRole="ADMIN" />, accounts: <AccountManagement key="accounts" />,
-  teachers: <TeachersRoute />, staff: <AccountManagement key="staff" fixedRole="STAFF" />, courses: <CourseManagement />,
+  teachers: <TeachersRoute />, staff: <AccountManagement key="staff" fixedRole="STAFF" />, programs: <ProgramManagement />, courses: <CourseManagement />,
   classes: <ClassManagement key="classes" />, rooms: <RoomManagement />, schedule: <ScheduleManagement key="schedule" />,
   'my-classes': <ClassManagement key="my-classes" />, 'my-schedule': <ScheduleManagement key="my-schedule" />, enrollment: <EnrollmentManagement />,
   attendance: <AttendanceManagement />, exams: <ExamManagement />, grades: <GradeManagement />, documents: <DocumentManagement />, tuition: <TuitionManagement />, payments: <PaymentManagement />, reports: <Reports />,

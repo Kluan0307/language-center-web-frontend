@@ -1,5 +1,7 @@
 # Language Center Frontend
 
+**Cập nhật11/11/2026:** Có trang quản lý Admin `/administrators`, Chương trình & trình độ `/programs`, sidebar cố định, menu thao tác gọn và lịch sử trước/sau. Lịch học/lịch dạy dùng FullCalendar6 Time-grid tuần/ngày/danh sách; bộ lọc/ngày lưu URL.96tests, lint/build và nghiệm thu thật đạt theo [giai đoạn5](../language-center-backend/language-center-backend/docs/reviews/2026-11-11-phase-5-completion.md). Các file mock/trang TeacherManagement/StaffManagement cũ đã dọn. Mốc10/11 bên dưới là lịch sử.
+
 **Nghiệm thu lại G17–G18 ngày 10/11/2026:** 12 ca Edge thật đạt cùng backend/MySQL riêng (tổng86ca). [Chạy lại và demo](../language-center-backend/language-center-backend/deployment/acceptance-g17-g18.md). Không coi build/Vitest là thay thế browser acceptance.
 
 Ứng dụng React + TypeScript + Vite, dùng Ant Design và styled-components.
@@ -131,3 +133,7 @@ Báo cáo hiển thị theo enrollment, điểm0/chưa chấm/không áp dụng,
 G19 dùng4role/route và dữ liệu nghiệm thu thực tế; [bản thảo](../language-center-backend/language-center-backend/docs/thesis/report/index.md), [demo](../language-center-backend/language-center-backend/docs/thesis/report/kich-ban-demo.md). Bản nộp còn mẫu khoa/khảo sát và releaseG20 cần xác minh riêng.
 
 G20 đã kiểm tra FEbuild tĩnh cùng JAR trong release, restore và UI4role. [Bàn giao](../language-center-backend/language-center-backend/docs/thesis-progress/G20.md) · [Mở demo](../language-center-backend/language-center-backend/deployment/defense-rehearsal-checklist.md). Không dùng Vite để thay nghiệm thu artifact.
+
+## Release đã nghiệm thu ngày 11/11/2026
+
+FE static trong release mới đã chạy cùng 5 JAR, đạt kiểm thử UI 4 role trước/sau backup-restore. Xem [báo cáo giai đoạn 6](../language-center-backend/language-center-backend/docs/reviews/2026-11-11-phase-6-completion.md) để lấy ZIP và hướng dẫn bàn giao. Bản snapshot được giữ nguyên; hồ sơ qualification ràng buộc SHA256 manifest lưu riêng cùng ZIP.

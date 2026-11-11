@@ -226,11 +226,9 @@ export function CourseDurationPanel({
             type={view.data.verified ? "success" : "warning"}
             title={"Kế hoạch: " + durationLabel(view.data.expectedMinutes)}
             description={
-              "Giá trị cũ chưa rõ đơn vị: " +
-              (view.data.legacyDuration ?? "không có") +
-              ". Phiên bản: " +
-              view.data.revision +
-              ". Không tự quy đổi."
+              view.data.verified
+                ? undefined
+                : "Chưa xác nhận tổng thời lượng. Vui lòng kiểm tra và cập nhật kế hoạch khóa học."
             }
           />
           {view.data.canManage && (
