@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Alert, App, Button, Card, Col, Descriptions, Divider, Drawer, Form, Input, Modal, Popconfirm, Row, Select, Space, Table, Tag, Typography, DatePicker } from 'antd';
+import { Alert, App, Button, Card, Col, Descriptions, Divider, Drawer, Form, Input, Modal, Dropdown, Row, Select, Space, Table, Tag, Typography, DatePicker } from 'antd';
 import type { TableColumnsType } from 'antd';
 import type { Dayjs } from 'dayjs';
-import { Eye, LockKeyhole, Plus, RefreshCw, UnlockKeyhole } from 'lucide-react';
+import { Eye, LockKeyhole, MoreHorizontal, Plus, RefreshCw, UnlockKeyhole } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ManagementLayout, Filters } from '../../components/Layout/ManagementLayout';
 import { useAuth } from '../../hooks/useAuth';
@@ -21,9 +21,9 @@ import ResetPassword from './ResetPassword';
 import TeacherProfilePanel from './TeacherProfilePanel';
 
 type AccountForm = Omit<CreateUserRequest, 'hireDate'> & { hireDate?: Dayjs; confirmPassword: string };
-export default function AccountManagement({ fixedRole }: { fixedRole?: 'STAFF' | 'TEACHER' }) {
+export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' | 'STAFF' | 'TEACHER' }) {
   const { user } = useAuth();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const [query, setQuery] = useState<{ page: number; size: number; keyword: string; branchId?: number; role?: Role }>({ page: 0, size: 10, keyword: '' });
   const resource = useAccounts({ ...query, role: fixedRole ?? query.role });
   const branches = useRemoteResource(branchService.all, {});
@@ -40,13 +40,13 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'STAFF' |
   const [teacherProfile,setTeacherProfile]=useState<number|null>(null);
   if (!user) return null;
   const isSuper = user.role === 'SUPER_ADMIN';
-  const allowedRoles = creatableRoles(user.role);
+  const allowedRoles = creatableRoles(user.role).filter((value) => !fixedRole || value === fixedRole);
   const activeBranches = branches.data?.filter((b) => b.status === 'ACTIVE') ?? [];
   const ownBranch = branches.data?.find((b) => b.id === user.branchId);
   const canCreate = allowedRoles.length > 0 && (isSuper ? activeBranches.length > 0 : ownBranch?.status === 'ACTIVE');
   const branchName = (id: number | null) => id === null ? 'Toàn hệ thống'
     : branches.data?.find((b) => b.id === id)?.name ?? `Chi nhánh #${id}`;
-  const title = fixedRole === 'TEACHER' ? 'Giáo viên' : fixedRole === 'STAFF' ? 'Nhân viên' : 'Tài khoản';
+  const title = fixedRole === 'ADMIN' ? 'Quản trị viên' : fixedRole === 'TEACHER' ? 'Giáo viên' : fixedRole === 'STAFF' ? 'Nhân viên' : 'Tài khoản';
   function openCreate() {
     form.resetFields();
     form.setFieldsValue({ role: fixedRole ?? (isSuper ? 'ADMIN' : 'STAFF'),
@@ -55,16 +55,17 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'STAFF' |
     setOpen(true);
   }
   async function create(values: AccountForm) {
-    if (!user || saving || !creatableRoles(user.role).includes(values.role)) return;
+    const targetRole = fixedRole ?? values.role;
+    if (!user || saving || !allowedRoles.includes(targetRole)) return;
     setSaving(true); setFormError(undefined);
     const optional = (value?: string) => value?.trim() || undefined;
     const payload: CreateUserRequest = {
       username: values.username.trim(), password: values.password, fullName: values.fullName.trim(),
-      role: values.role, branchId: isSuper ? values.branchId : undefined,
+      role: targetRole, branchId: isSuper ? values.branchId : undefined,
       email: optional(values.email), phone: optional(values.phone),
       hireDate: values.hireDate?.format('YYYY-MM-DD'), workStatus: 'ACTIVE',
-      ...(values.role === 'STAFF' ? { position: optional(values.position) } : {}),
-      ...(values.role === 'TEACHER' ? { specialization: optional(values.specialization),
+      ...(targetRole === 'STAFF' ? { position: optional(values.position) } : {}),
+      ...(targetRole === 'TEACHER' ? { specialization: optional(values.specialization),
         qualification: optional(values.qualification), experience: optional(values.experience), certificate: optional(values.certificate) } : {}),
     };
     try {
@@ -96,23 +97,38 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'STAFF' |
     ...(isSuper ? [{ title: 'Chi nhánh', key: 'branches', render: (_:unknown,a:UserResponse) => a.role==='SUPER_ADMIN'?'Toàn hệ thống':(a.branchIds??(a.branchId?[a.branchId]:[])).map(id=>branchName(id)).join(', ')||'Chưa phân công' }] : []),
     { title: 'Liên hệ', key: 'contact', render: (_, a) => <div>{a.phone || '—'}<div><Typography.Text type="secondary">{a.email}</Typography.Text></div></div> },
     { title: 'Trạng thái', dataIndex: 'status', render: (value,account) => <><Tag color={value ? 'green' : 'default'}>{value ? 'Đang hoạt động' : 'Đã khóa'}</Tag>{account.mustChangePassword&&<Tag color="orange">Cần đổi mật khẩu</Tag>}</> },
-    { title: 'Thao tác', key: 'actions', width: 300, render: (_, a) => <Space wrap>
-      <Button size="small" icon={<Eye size={14} />} onClick={() => a.role==='TEACHER'&&a.profileId?setTeacherProfile(a.profileId):setDetail(a)}>Xem</Button>
-      {isSuper&&a.role!=='SUPER_ADMIN'&&<Button size="small" onClick={()=>setAssignment(a)}>Chi nhánh</Button>}
-      {canManageAccount(user,a)&&<Button size="small" onClick={()=>setResetTarget(a)}>Cấp lại mật khẩu</Button>}
-      {canManageAccount(user, a) && <Popconfirm title={a.status ? 'Khóa tài khoản này?' : 'Mở lại tài khoản này?'}
-        description={a.status ? 'Người dùng sẽ không đăng nhập lại được khi bị khóa.' : undefined}
-        okText="Xác nhận" cancelText="Hủy" disabled={busyId !== null} onConfirm={() => toggle(a)}>
-        <Button size="small" danger={a.status} loading={busyId === a.accountId} disabled={busyId !== null}
-          icon={a.status ? <LockKeyhole size={14} /> : <UnlockKeyhole size={14} />}>{a.status ? 'Khóa' : 'Mở'}</Button>
-      </Popconfirm>}
-    </Space> },
+    { title: 'Thao tác', key: 'actions', width: 132, render: (_, a) => {
+      const manageable = canManageAccount(user, a);
+      const items = [
+        ...(isSuper && a.role !== 'SUPER_ADMIN' ? [{ key: 'branches', label: 'Phân công chi nhánh', onClick: () => setAssignment(a) }] : []),
+        ...(manageable ? [
+          { key: 'password', label: 'Cấp lại mật khẩu', onClick: () => setResetTarget(a) },
+          { key: 'status', label: a.status ? 'Khóa tài khoản' : 'Mở khóa tài khoản', danger: a.status,
+            disabled: busyId !== null,
+            icon: a.status ? <LockKeyhole size={14} /> : <UnlockKeyhole size={14} />,
+            onClick: () => modal.confirm({
+              title: a.status ? 'Khóa tài khoản này?' : 'Mở lại tài khoản này?',
+              content: a.status ? 'Người dùng sẽ không đăng nhập lại được khi bị khóa.' : undefined,
+              okText: 'Xác nhận', cancelText: 'Hủy', okButtonProps: { danger: a.status },
+              onOk: () => toggle(a),
+            }),
+          },
+        ] : []),
+      ];
+      return <Space size={4} wrap={false}>
+        <Button size="small" icon={<Eye size={14} />} onClick={() => a.role === 'TEACHER' && a.profileId ? setTeacherProfile(a.profileId) : setDetail(a)}>Xem</Button>
+        {items.length > 0 && <Dropdown trigger={['click']} menu={{ items }} placement="bottomRight">
+          <Button size="small" icon={<MoreHorizontal size={16} />} loading={busyId === a.accountId}
+            disabled={busyId !== null} aria-label={'Thao tác khác cho ' + a.username} />
+        </Dropdown>}
+      </Space>;
+    } },
   ];
   return <ManagementLayout title={title}
-    description={isSuper ? 'Quản lý tài khoản và hồ sơ nhân sự theo từng chi nhánh.' : 'Quản lý nhân sự trong chi nhánh của bạn.'}
+    description={fixedRole === 'ADMIN' ? 'Quản lý Admin, phân công các chi nhánh phụ trách và theo dõi lịch sử thay đổi.' : isSuper ? 'Quản lý tài khoản và hồ sơ nhân sự theo từng chi nhánh.' : 'Quản lý nhân sự trong chi nhánh của bạn.'}
     actions={<>
       <Button icon={<RefreshCw size={16} />} onClick={() => { resource.reload(); branches.reload(); }} loading={resource.loading}>Tải lại</Button>
-      <Button type="primary" icon={<Plus size={16} />} disabled={!canCreate} onClick={openCreate}>Tạo tài khoản</Button>
+      <Button type="primary" icon={<Plus size={16} />} disabled={!canCreate} onClick={openCreate}>{fixedRole === 'ADMIN' ? 'Tạo quản trị viên' : 'Tạo tài khoản'}</Button>
     </>}>
     {branches.error && <Alert showIcon type="warning" title="Chưa tải được thông tin chi nhánh" description={branches.error}
       action={<Button onClick={branches.reload}>Thử lại</Button>} />}
@@ -123,7 +139,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'STAFF' |
       action={<Button onClick={resource.reload}>Thử lại</Button>} />}
     <Card>
       <Filters>
-        <Input.Search className="search" value={search} allowClear enterButton placeholder="Tìm tên đăng nhập hoặc họ tên giáo viên"
+        <Input.Search className="search" value={search} allowClear enterButton placeholder={fixedRole === 'ADMIN' ? 'Tìm tên đăng nhập quản trị viên' : 'Tìm tên đăng nhập hoặc họ tên giáo viên'}
           onChange={(e) => { setSearch(e.target.value); if (!e.target.value) setQuery((q) => ({ ...q, page: 0, keyword: '' })); }}
           onSearch={(keyword) => setQuery((q) => ({ ...q, keyword: keyword.trim(), page: 0 }))} />
         {!fixedRole && <Select className="filter" placeholder="Tất cả vai trò" allowClear value={query.role}
@@ -142,8 +158,8 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'STAFF' |
           showSizeChanger: true, pageSizeOptions: [10, 20, 50],
           onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />
     </Card>
-    <Modal title="Tạo tài khoản nhân sự" open={open} width={720} forceRender
-      onCancel={() => { if (!saving) setOpen(false); }} onOk={() => form.submit()} okText="Tạo tài khoản" cancelText="Hủy"
+    <Modal title={fixedRole === 'ADMIN' ? 'Tạo quản trị viên' : 'Tạo tài khoản nhân sự'} open={open} width={720} forceRender
+      onCancel={() => { if (!saving) setOpen(false); }} onOk={() => form.submit()} okText={fixedRole === 'ADMIN' ? 'Tạo quản trị viên' : 'Tạo tài khoản'} cancelText="Hủy"
       confirmLoading={saving} closable={!saving} maskClosable={!saving} cancelButtonProps={{ disabled: saving }}>
       <Form<AccountForm> form={form} layout="vertical" onFinish={create} disabled={saving}>
         {formError && <Alert showIcon type="error" title={formError} style={{ marginBottom: 16 }} />}

@@ -1,5 +1,6 @@
+import TableActions from '../../components/Common/TableActions';
 import { useState } from 'react';
-import { App, Alert, Button, Card, Col, Descriptions, Drawer, Form, Input, InputNumber, Modal, Popconfirm, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import { App, Alert, Button, Card, Col, Descriptions, Drawer, Form, Input, InputNumber, Modal, Row, Select, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { Eye, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { ManagementLayout, Filters } from '../../components/Layout/ManagementLayout';
@@ -64,18 +65,25 @@ export default function RoomManagement() {
     { title: 'Vị trí', dataIndex: 'location', render: (v) => v || '—' },
     { title: 'Sức chứa', dataIndex: 'capacity', render: (v) => `${v} chỗ` },
     { title: 'Trạng thái', dataIndex: 'status', render: (v) => <Tag color={v === 'AVAILABLE' ? 'green' : 'orange'}>{v === 'AVAILABLE' ? 'Sẵn sàng' : 'Bảo trì'}</Tag> },
-    { title: 'Thao tác', key: 'actions', fixed: 'right' as const, width: 300, render: (_, r) => <Space wrap>
-      <Button size="small" icon={<Eye size={14} />} onClick={() => setDetail(r)}>Xem</Button>
-      <Button size="small" icon={<Pencil size={14} />} onClick={() => openForm(r)}>Sửa</Button>
-      <Popconfirm title={r.status === 'AVAILABLE' ? 'Đưa phòng vào bảo trì?' : 'Đưa phòng vào sử dụng?'} okText="Xác nhận" cancelText="Hủy"
-        onConfirm={() => mutate(r, 'status')} disabled={busyId !== null}>
-        <Button size="small" disabled={busyId !== null} loading={busyId === r.id}>{r.status === 'AVAILABLE' ? 'Bảo trì' : 'Sử dụng'}</Button>
-      </Popconfirm>
-      <Popconfirm title="Xóa phòng học?" description="Chỉ xóa được phòng chưa được gán cho lớp nào." okText="Xóa" cancelText="Hủy"
-        onConfirm={() => mutate(r, 'delete')} disabled={busyId !== null}>
-        <Button size="small" danger icon={<Trash2 size={14} />} disabled={busyId !== null}>Xóa</Button>
-      </Popconfirm>
-    </Space> },
+    { title: 'Thao tác', key: 'actions', fixed: 'right' as const, width: 160, render: (_, r) => <TableActions items={[
+    {
+        key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => openForm(r)
+    },
+    {
+        key: "action-2", label: r.status === 'AVAILABLE' ? 'Bảo trì' : 'Sử dụng', loading: busyId === r.id, disabled: (busyId !== null) || (busyId !== null), confirm: {
+            title: r.status === 'AVAILABLE' ? 'Đưa phòng vào bảo trì?' : 'Đưa phòng vào sử dụng?', okText: "Xác nhận", cancelText: "Hủy", content: undefined, okButtonProps: {
+                danger: false
+            }, onOk: () => mutate(r, 'status')
+        }
+    },
+    {
+        key: "action-3", label: "Xóa", icon: <Trash2 size={14}/>, danger: true, disabled: (busyId !== null) || (busyId !== null), confirm: {
+            title: "Xóa phòng học?", okText: "Xóa", cancelText: "Hủy", content: "Chỉ xóa được phòng chưa được gán cho lớp nào.", okButtonProps: {
+                danger: true
+            }, onOk: () => mutate(r, 'delete')
+        }
+    }
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setDetail(r)}>Xem</Button></TableActions> },
   ];
   return <ManagementLayout title="Phòng học" description="Quản lý sức chứa, vị trí, thiết bị và trạng thái phòng."
     actions={<><Button icon={<RefreshCw size={16} />} onClick={list.reload} loading={list.loading}>Tải lại</Button>

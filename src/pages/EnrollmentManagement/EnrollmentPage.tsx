@@ -1,3 +1,4 @@
+import TableActions from '../../components/Common/TableActions';
 import {
   ExceptionList,
   EnrollmentAdmissionHistory,
@@ -141,51 +142,32 @@ export default function EnrollmentPage() {
     }
   }
   const actions = (record: EnrollmentDto, includeView = true) => (
-    <Space wrap>
-      {includeView && (
-        <Button
-          size="small"
-          icon={<Eye size={14} />}
-          onClick={() =>
-            setParams((p) => {
-              const next = new URLSearchParams(p);
-              next.set("enrollmentId", String(record.id));
-              return next;
-            })
-          }
-        >
+    <TableActions items={[
+        ...((nextStudyStates(record.studyStatus).length > 0) ? ([
+            {
+                key: "action-1", label: record.studyStatus === "RESERVED" ? "Học lại / ngừng" : "Trạng thái", onClick: () => setAction({
+                    record, mode: "status"
+                })
+            }
+        ]) : []), ...(((record.studyStatus === "STUDYING" ||
+            record.studyStatus === "RESERVED")) ? ([
+            {
+                key: "action-2", label: "Chuyển lớp", icon: <ArrowRightLeft size={14}/>, onClick: () => setAction({
+                    record, mode: "transfer"
+                })
+            }
+        ]) : []), ...((record.tuitionDelivery !== "CREATED") ? ([
+            {
+                key: "action-3", label: "Thử tạo học phí", disabled: busyId !== null, loading: busyId === record.id, onClick: () => void retry(record)
+            }
+        ]) : [])
+    ]}>{includeView && (<Button size="small" icon={<Eye size={14}/>} onClick={() => setParams((p) => {
+            const next = new URLSearchParams(p);
+            next.set("enrollmentId", String(record.id));
+            return next;
+        })}>
           Xem
-        </Button>
-      )}
-      {nextStudyStates(record.studyStatus).length > 0 && (
-        <Button
-          size="small"
-          onClick={() => setAction({ record, mode: "status" })}
-        >
-          {record.studyStatus === "RESERVED" ? "Học lại / ngừng" : "Trạng thái"}
-        </Button>
-      )}
-      {(record.studyStatus === "STUDYING" ||
-        record.studyStatus === "RESERVED") && (
-        <Button
-          size="small"
-          icon={<ArrowRightLeft size={14} />}
-          onClick={() => setAction({ record, mode: "transfer" })}
-        >
-          Chuyển lớp
-        </Button>
-      )}
-      {record.tuitionDelivery !== "CREATED" && (
-        <Button
-          size="small"
-          loading={busyId === record.id}
-          disabled={busyId !== null}
-          onClick={() => void retry(record)}
-        >
-          Thử tạo học phí
-        </Button>
-      )}
-    </Space>
+        </Button>)}</TableActions>
   );
   const columns: TableColumnsType<EnrollmentDto> = [
     { title: "Học viên", dataIndex: "studentName", width: 200 },
@@ -241,7 +223,7 @@ export default function EnrollmentPage() {
     {
       title: "Thao tác",
       key: "actions",
-      width: 390,
+      width: 160,
       fixed: "right",
       render: (_, e) => actions(e),
     },

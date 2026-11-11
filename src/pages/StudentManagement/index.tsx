@@ -1,23 +1,8 @@
+import TableActions from '../../components/Common/TableActions';
 import { useListQuery } from "../../hooks/useListQuery";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-  App,
-  Alert,
-  Button,
-  Card,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  Modal,
-  Popconfirm,
-  Select,
-  Space,
-  Table,
-  Tabs,
-  Typography,
-} from "antd";
+import { App, Alert, Button, Card, Descriptions, Drawer, Form, Input, Modal, Select, Space, Table, Tabs, Typography } from "antd";
 import type { TableColumnsType } from "antd";
 import { Eye, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import {
@@ -185,48 +170,28 @@ export default function StudentManagement() {
     }
   }
   const actions = (student: StudentDto) => (
-    <Space wrap>
-      <Button
-        size="small"
-        icon={<Eye size={14} />}
-        onClick={() => focusStudent(student.id)}
-      >
+    <TableActions items={[
+    {
+        key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => setFormState({
+            editing: student
+        })
+    },
+    {
+        key: "action-2", label: "Trạng thái", onClick: () => setStatusTarget(student)
+    },
+    {
+        key: "action-3", label: "Đăng ký lớp", to: `/enrollment?studentId=${student.id}`
+    },
+    {
+        key: "action-4", label: "Xóa", icon: <Trash2 size={14}/>, loading: busyId === student.id, danger: true, disabled: (busyId !== null) || (busyId !== null), confirm: {
+            title: "Xóa học viên?", okText: "Xóa", cancelText: "Hủy", content: "Chỉ xóa được hồ sơ chưa có đăng ký và không được Lead chuyển đổi tham chiếu.", okButtonProps: {
+                danger: true
+            }, onOk: () => remove(student)
+        }
+    }
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => focusStudent(student.id)}>
         Xem
-      </Button>
-      <Button
-        size="small"
-        icon={<Pencil size={14} />}
-        onClick={() => setFormState({ editing: student })}
-      >
-        Sửa
-      </Button>
-      <Button size="small" onClick={() => setStatusTarget(student)}>
-        Trạng thái
-      </Button>
-      <Link to={`/enrollment?studentId=${student.id}`}>
-        <Button size="small" type="primary">
-          Đăng ký lớp
-        </Button>
-      </Link>
-      <Popconfirm
-        title="Xóa học viên?"
-        description="Chỉ xóa được hồ sơ chưa có đăng ký và không được Lead chuyển đổi tham chiếu."
-        okText="Xóa"
-        cancelText="Hủy"
-        onConfirm={() => remove(student)}
-        disabled={busyId !== null}
-      >
-        <Button
-          size="small"
-          danger
-          icon={<Trash2 size={14} />}
-          disabled={busyId !== null}
-          loading={busyId === student.id}
-        >
-          Xóa
-        </Button>
-      </Popconfirm>
-    </Space>
+      </Button></TableActions>
   );
   const columns: TableColumnsType<StudentDto> = [
     {
@@ -284,7 +249,7 @@ export default function StudentManagement() {
       title: "Thao tác",
       key: "actions",
       fixed: "right",
-      width: 380,
+      width: 160,
       render: (_, s) => actions(s),
     },
   ];

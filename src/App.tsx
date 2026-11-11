@@ -58,7 +58,7 @@ function TeachersRoute() {
 }
 const PAGES: Record<string, ReactNode> = {
   dashboard: <Overview />, leads: <LeadsPage />, students: <StudentManagement />,
-  branches: <BranchManagement />, accounts: <AccountManagement key="accounts" />,
+  branches: <BranchManagement />, administrators: <AccountManagement key="administrators" fixedRole="ADMIN" />, accounts: <AccountManagement key="accounts" />,
   teachers: <TeachersRoute />, staff: <AccountManagement key="staff" fixedRole="STAFF" />, courses: <CourseManagement />,
   classes: <ClassManagement key="classes" />, rooms: <RoomManagement />, schedule: <ScheduleManagement key="schedule" />,
   'my-classes': <ClassManagement key="my-classes" />, 'my-schedule': <ScheduleManagement key="my-schedule" />, enrollment: <EnrollmentManagement />,

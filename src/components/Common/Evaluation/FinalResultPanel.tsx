@@ -1,3 +1,4 @@
+import TableActions from '../TableActions';
 import { useState } from "react";
 import {
   Alert,
@@ -12,7 +13,7 @@ import {
   Tag,
   Typography,
 } from "antd";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import { useRemoteResource } from "../../../hooks/useRemoteResource";
 import { useFormLeaveGuard } from "../../../hooks/useFormLeaveGuard";
@@ -382,33 +383,23 @@ export default function FinalResultPanel({
                 (x) => x.enrollmentId === r.enrollmentId,
               );
               return (
-                <Space wrap>
-                  {manager && f?.state !== "CONFIRMED" && (
-                    <Button onClick={() => setConfirm(r.enrollmentId)}>
+                <TableActions items={[
+        {
+            key: "action-1", label: "Lịch sử", disabled: !f, onClick: () => setHistoryId(r.enrollmentId)
+        },
+        ...((manager) ? ([
+            {
+                key: "action-2", label: "Đồng bộ hoàn thành", to: "/enrollment?studentId=" +
+                    r.studentId +
+                    "&classId=" +
+                    classId +
+                    "&enrollmentId=" +
+                    r.enrollmentId
+            }
+        ]) : [])
+    ]}>{manager && f?.state !== "CONFIRMED" && (<Button onClick={() => setConfirm(r.enrollmentId)}>
                       Xem trước / chốt
-                    </Button>
-                  )}
-                  <Button
-                    disabled={!f}
-                    onClick={() => setHistoryId(r.enrollmentId)}
-                  >
-                    Lịch sử
-                  </Button>
-                  {manager && (
-                    <Link
-                      to={
-                        "/enrollment?studentId=" +
-                        r.studentId +
-                        "&classId=" +
-                        classId +
-                        "&enrollmentId=" +
-                        r.enrollmentId
-                      }
-                    >
-                      Đồng bộ hoàn thành
-                    </Link>
-                  )}
-                </Space>
+                    </Button>)}</TableActions>
               );
             },
           },

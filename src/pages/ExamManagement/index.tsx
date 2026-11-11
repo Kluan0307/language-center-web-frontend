@@ -1,17 +1,8 @@
+import TableActions from '../../components/Common/TableActions';
 import EvaluationWorkspace from "../../components/Common/Evaluation/EvaluationWorkspace";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Popconfirm,
-  Select,
-  Space,
-  Table,
-  Typography,
-} from "antd";
+import { Alert, App, Button, Card, Select, Table, Typography } from "antd";
 import {
   ManagementLayout,
   Filters,
@@ -154,38 +145,26 @@ export default function ExamManagement() {
                 title: "Thao tác",
                 key: "actions",
                 fixed: "right",
-                width: 290,
+                width: 160,
                 render: (_, e) => (
-                  <Space wrap>
-                    <Link
-                      to={"/grades?classId=" + e.classId + "&examId=" + e.id}
-                    >
+                  <TableActions items={[
+    {
+        key: "action-1", label: "Sửa", onClick: () => setForm({
+            editing: e
+        })
+    },
+    {
+        key: "action-2", label: "Xóa", loading: busyId === e.id, danger: true, disabled: (busyId !== null), confirm: {
+            title: "Xóa bài kiểm tra chưa có điểm?", okText: "Xóa", cancelText: "Hủy", content: undefined, okButtonProps: {
+                danger: true
+            }, onOk: () => remove(e)
+        }
+    }
+]}><Link to={"/grades?classId=" + e.classId + "&examId=" + e.id}>
                       <Button size="small" type="primary">
                         Bảng điểm
                       </Button>
-                    </Link>
-                    <Button
-                      size="small"
-                      onClick={() => setForm({ editing: e })}
-                    >
-                      Sửa
-                    </Button>
-                    <Popconfirm
-                      title="Xóa bài kiểm tra chưa có điểm?"
-                      okText="Xóa"
-                      cancelText="Hủy"
-                      onConfirm={() => remove(e)}
-                    >
-                      <Button
-                        size="small"
-                        danger
-                        disabled={busyId !== null}
-                        loading={busyId === e.id}
-                      >
-                        Xóa
-                      </Button>
-                    </Popconfirm>
-                  </Space>
+                    </Link></TableActions>
                 ),
               },
             ]}

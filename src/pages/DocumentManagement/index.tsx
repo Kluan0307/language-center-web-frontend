@@ -1,3 +1,4 @@
+import TableActions from '../../components/Common/TableActions';
 import {useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
 import {Alert,App,Button,Card,Descriptions,Drawer,Select,Space,Table,Tag,Typography} from 'antd';
@@ -35,10 +36,22 @@ export default function DocumentManagement(){
   try{const blob=await documentService.download(d.id);const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=d.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   catch(e){message.error(getErrorMessage(e));}finally{setBusyId(null);}
  }
- const actions=(d:DocumentDto,view=true)=><Space wrap>{view&&<Button size="small" onClick={()=>setParams({documentId:String(d.id)})}>Xem</Button>}
-  <Button size="small" loading={busyId===d.id} disabled={busyId!==null} onClick={()=>void download(d)}>Tải file</Button>
-  {d.status==='REJECTED'&&d.uploadedBy===user?.accountId&&<Button size="small" onClick={()=>setResubmit(d)}>Sửa / gửi lại</Button>}
-  {admin&&d.status==='PENDING'&&<Button size="small" type="primary" onClick={()=>setReview(d)}>Duyệt</Button>}</Space>;
+ const actions=(d:DocumentDto,view=true)=><TableActions items={[
+    {
+        key: "action-1", label: "Tải file", disabled: busyId !== null, loading: busyId === d.id, onClick: () => void download(d)
+    },
+    ...((d.status === 'REJECTED' && d.uploadedBy === user?.accountId) ? ([
+        {
+            key: "action-2", label: "Sửa / gửi lại", onClick: () => setResubmit(d)
+        }
+    ]) : []), ...((admin && d.status === 'PENDING') ? ([
+        {
+            key: "action-3", label: "Duyệt", onClick: () => setReview(d)
+        }
+    ]) : [])
+]}>{view && <Button size="small" onClick={() => setParams({
+    documentId: String(d.id)
+})}>Xem</Button>}</TableActions>;
  const d=detail.data;
  return <ManagementLayout title={user?.role==='TEACHER'?'Tài liệu của tôi':'Tài liệu'} description="Tải lên, duyệt và tải tài liệu theo đúng quyền của từng vai trò."
   actions={<><Button loading={list.loading} onClick={refresh}>Tải lại</Button>{user?.role!=='STAFF'&&<Button type="primary" onClick={()=>setUpload(true)}>Tải tài liệu lên</Button>}</>}>
@@ -61,7 +74,7 @@ export default function DocumentManagement(){
    {title:'Người tải lên',dataIndex:'uploadedByName'},{title:'Ngày tải',dataIndex:'uploadedAt',render:(v:string)=>displayDate(v)},
    {title:'Trạng thái',dataIndex:'status',render:(v:DocumentStatus)=><StatusTag status={v}/>},
    ...(user?.role==='SUPER_ADMIN'?[{title:'Chi nhánh',dataIndex:'branchId',render:(id:number)=>branchLabel(branches.data,id)}]:[]),
-   {title:'Thao tác',key:'actions',fixed:'right',width:240,render:(_,v)=>actions(v)},
+   {title:'Thao tác',key:'actions',fixed:'right',width:160,render:(_,v)=>actions(v)},
   ]} pagination={{current:query.page+1,pageSize:query.size,total:list.data?.totalElements??0,showSizeChanger:true,onChange:(page,size)=>setQuery(q=>({...q,page:size!==q.size?0:page-1,size}))}}/>
   </Card>
   <Drawer open={selectedId!==null} title="Chi tiết tài liệu" size={760} loading={detail.loading} onClose={()=>setParams({})}>

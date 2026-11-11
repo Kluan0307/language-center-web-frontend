@@ -1,3 +1,4 @@
+import TableActions from '../TableActions';
 import { useState } from "react";
 import {
   Alert,
@@ -345,41 +346,26 @@ export default function StudentAssessments({
           {
             title: "Thao tác",
             render: (_, a) => (
-              <Space wrap>
-                <Button onClick={() => setHistoryId(a.id)}>
+              <TableActions items={[
+    ...((a.status === "DRAFT") ? ([
+        {
+            key: "action-1", label: "Sửa nháp", disabled: busy, onClick: () => void edit(a, "edit")
+        },
+        {
+            key: "action-2", label: "Xác nhận", disabled: busy, onClick: () => void edit(a, "confirm")
+        }
+    ]) : []), ...((a.status === "CONFIRMED") ? ([
+        {
+            key: "action-3", label: "Tạo bản thay thế", disabled: busy, onClick: () => void edit(a, "copy")
+        }
+    ]) : []), ...(((a.status === "DRAFT" || a.status === "CONFIRMED")) ? ([
+        {
+            key: "action-4", label: "Thu hồi", disabled: busy, danger: true, onClick: () => void edit(a, "revoke")
+        }
+    ]) : [])
+]}><Button onClick={() => setHistoryId(a.id)}>
                   Chi tiết / lịch sử
-                </Button>
-                {a.status === "DRAFT" && (
-                  <>
-                    <Button
-                      disabled={busy}
-                      onClick={() => void edit(a, "edit")}
-                    >
-                      Sửa nháp
-                    </Button>
-                    <Button
-                      disabled={busy}
-                      onClick={() => void edit(a, "confirm")}
-                    >
-                      Xác nhận
-                    </Button>
-                  </>
-                )}
-                {a.status === "CONFIRMED" && (
-                  <Button disabled={busy} onClick={() => void edit(a, "copy")}>
-                    Tạo bản thay thế
-                  </Button>
-                )}
-                {(a.status === "DRAFT" || a.status === "CONFIRMED") && (
-                  <Button
-                    danger
-                    disabled={busy}
-                    onClick={() => void edit(a, "revoke")}
-                  >
-                    Thu hồi
-                  </Button>
-                )}
-              </Space>
+                </Button></TableActions>
             ),
           },
         ]}

@@ -1,19 +1,8 @@
+import TableActions from '../../components/Common/TableActions';
 import { useListQuery } from "../../hooks/useListQuery";
 import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
-import {
-  App,
-  Alert,
-  Button,
-  Card,
-  Popconfirm,
-  Select,
-  Space,
-  Table,
-  Tag,
-  Typography,
-  Input,
-} from "antd";
+import { App, Alert, Button, Card, Select, Space, Table, Tag, Typography, Input } from "antd";
 import type { TableColumnsType } from "antd";
 import { Eye, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import {
@@ -161,51 +150,31 @@ export default function ClassManagement() {
       title: "Thao tác",
       key: "actions",
       fixed: "right" as const,
-      width: teacher ? 80 : 300,
+      width: 160,
       render: (_, c) => (
-        <Space wrap>
-          <Button
-            size="small"
-            icon={<Eye size={14} />}
-            onClick={() => setDetailId(c.id)}
-          >
+        <TableActions items={[
+    ...((!teacher) ? ([
+        {
+            key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => setFormState({
+                editing: c
+            })
+        },
+        ...((manager) ? ([
+            {
+                key: "action-2", label: "Đối soát đóng / mở lớp", onClick: () => setDetailId(c.id)
+            }
+        ]) : []),
+        {
+            key: "action-3", label: "Xóa", icon: <Trash2 size={14}/>, loading: busyId === c.id, danger: true, disabled: (busyId !== null) || (busyId !== null), confirm: {
+                title: "Xóa lớp học?", okText: "Xóa", cancelText: "Hủy", content: "Chỉ xóa được lớp chưa từng có đăng ký. Lịch tuần của lớp cũng sẽ bị xóa.", okButtonProps: {
+                    danger: true
+                }, onOk: () => mutate(c, "delete")
+            }
+        }
+    ]) : [])
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setDetailId(c.id)}>
             Xem
-          </Button>
-          {!teacher && (
-            <>
-              <Button
-                size="small"
-                icon={<Pencil size={14} />}
-                onClick={() => setFormState({ editing: c })}
-              >
-                Sửa
-              </Button>
-              {manager && (
-                <Button size="small" onClick={() => setDetailId(c.id)}>
-                  Đối soát đóng / mở lớp
-                </Button>
-              )}
-              <Popconfirm
-                title="Xóa lớp học?"
-                description="Chỉ xóa được lớp chưa từng có đăng ký. Lịch tuần của lớp cũng sẽ bị xóa."
-                okText="Xóa"
-                cancelText="Hủy"
-                onConfirm={() => mutate(c, "delete")}
-                disabled={busyId !== null}
-              >
-                <Button
-                  size="small"
-                  danger
-                  icon={<Trash2 size={14} />}
-                  disabled={busyId !== null}
-                  loading={busyId === c.id}
-                >
-                  Xóa
-                </Button>
-              </Popconfirm>
-            </>
-          )}
-        </Space>
+          </Button></TableActions>
       ),
     },
   ];

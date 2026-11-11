@@ -1,5 +1,6 @@
+import TableActions from '../../components/Common/TableActions';
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { App, Button, Card, Checkbox, Descriptions, Drawer, Input, Select, Space, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { Eye, Pencil, Plus, RefreshCw, UserCheck, PhoneCall } from 'lucide-react';
@@ -41,16 +42,32 @@ export default function LeadsPage() {
     list.reload(); detail.reload(); setParams({ leadId: String(lead.id) });
     message.success(converted ? 'Đã chuyển thành học viên. Hãy bổ sung hồ sơ và ghi danh lớp.' : 'Đã lưu thông tin Lead.');
   }
-  const actions = (lead: LeadDto) => <Space wrap>
-    <Button size="small" icon={<Eye size={14} />} onClick={() => setParams({ leadId: String(lead.id) })}>Xem</Button>
-    {canWrite(lead)&&lead.status !== 'CONVERTED' && <>
-      <Button size="small" icon={<Pencil size={14} />} onClick={() => setFormState({ editing: lead })}>Sửa</Button>
-      <Button size="small" icon={<PhoneCall size={14} />} onClick={() => setCare(lead)}>Chăm sóc</Button>
-    </>}
-    {manager&&lead.status!=='CONVERTED'&&<Button size="small" onClick={()=>setAssignment(lead)}>Phân công</Button>}
-    {canWrite(lead)&&canConvertLead(lead.status) && <Button size="small" type="primary" icon={<UserCheck size={14} />} onClick={() => setConvert(lead)}>Chuyển học viên</Button>}
-    {lead.convertedStudent && <Link to={`/students?studentId=${lead.convertedStudent.id}`}><Button size="small">Hồ sơ học viên</Button></Link>}
-  </Space>;
+  const actions = (lead: LeadDto) => <TableActions items={[
+    ...((canWrite(lead) && lead.status !== 'CONVERTED') ? ([
+        {
+            key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => setFormState({
+                editing: lead
+            })
+        },
+        {
+            key: "action-2", label: "Chăm sóc", icon: <PhoneCall size={14}/>, onClick: () => setCare(lead)
+        }
+    ]) : []), ...((manager && lead.status !== 'CONVERTED') ? ([
+        {
+            key: "action-3", label: "Phân công", onClick: () => setAssignment(lead)
+        }
+    ]) : []), ...((canWrite(lead) && canConvertLead(lead.status)) ? ([
+        {
+            key: "action-4", label: "Chuyển học viên", icon: <UserCheck size={14}/>, onClick: () => setConvert(lead)
+        }
+    ]) : []), ...((lead.convertedStudent) ? ([
+        {
+            key: "action-5", label: "Hồ sơ học viên", to: `/students?studentId=${lead.convertedStudent.id}`
+        }
+    ]) : [])
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setParams({
+    leadId: String(lead.id)
+})}>Xem</Button></TableActions>;
   const columns: TableColumnsType<LeadDto> = [
     { title: 'Khách hàng', key: 'name', width: 230, render: (_, lead) => <div>
       <Button type="link" style={{ padding: 0 }} onClick={() => setParams({ leadId: String(lead.id) })}>{lead.fullName}</Button>
@@ -62,7 +79,7 @@ export default function LeadsPage() {
     {title:'Hẹn tiếp theo',key:'next',render:(_,l)=><>{displayDate(l.nextContactAt)}{l.overdue&&<Tag color="red">Quá hẹn</Tag>}</>},
     { title: 'Liên hệ gần nhất', dataIndex: 'lastContactedAt', render: (v) => displayDate(v) },
     ...(user?.role === 'SUPER_ADMIN' ? [{ title: 'Chi nhánh', dataIndex: 'branchId', render: (id: number) => branchLabel(branches.data, id) }] : []),
-    { title: 'Thao tác', key: 'actions', fixed: 'right', width: 360, render: (_, lead) => actions(lead) },
+    { title: 'Thao tác', key: 'actions', fixed: 'right', width: 160, render: (_, lead) => actions(lead) },
   ];
   return <ManagementLayout title="Khách hàng tiềm năng" description="Tiếp nhận, chăm sóc và chuyển đổi Lead thành học viên."
     actions={<><Button icon={<RefreshCw size={16} />} onClick={() => { list.reload(); detail.reload(); }} loading={list.loading}>Tải lại</Button>

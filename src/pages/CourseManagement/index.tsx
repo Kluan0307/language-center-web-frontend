@@ -1,26 +1,8 @@
+import TableActions from '../../components/Common/TableActions';
 import { CourseDurationPanel } from "../../components/Common/Placement/DurationPanel";
 import { durationLabel } from "../../utils/duration";
 import { useState } from "react";
-import {
-  App,
-  Alert,
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Drawer,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Popconfirm,
-  Row,
-  Select,
-  Space,
-  Table,
-  Tag,
-  Typography,
-} from "antd";
+import { App, Alert, Button, Card, Col, Descriptions, Drawer, Form, Input, InputNumber, Modal, Row, Select, Table, Tag, Typography } from "antd";
 import type { TableColumnsType } from "antd";
 import { Eye, Pencil, Plus, RefreshCw } from "lucide-react";
 import {
@@ -217,44 +199,24 @@ export default function CourseManagement() {
       title: "Thao tác",
       key: "actions",
       fixed: "right" as const,
-      width: 220,
+      width: 160,
       render: (_, c) => (
-        <Space wrap>
-          <Button
-            size="small"
-            icon={<Eye size={14} />}
-            onClick={() => setDetail(c)}
-          >
+        <TableActions items={[
+    ...((canEditCourse(user.role, c)) ? ([
+        {
+            key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => openForm(c)
+        },
+        {
+            key: "action-2", label: c.status === "OPEN" ? "Đóng" : "Mở", loading: busyId === c.id, disabled: (busyId !== null) || (busyId !== null), confirm: {
+                title: c.status === "OPEN" ? "Đóng khóa học?" : "Mở khóa học?", okText: "Xác nhận", cancelText: "Hủy", content: "Lịch sử lớp và học phí đã chốt vẫn được giữ.", okButtonProps: {
+                    danger: false
+                }, onOk: () => toggle(c)
+            }
+        }
+    ]) : [])
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setDetail(c)}>
             Xem
-          </Button>
-          {canEditCourse(user.role, c) && (
-            <>
-              <Button
-                size="small"
-                icon={<Pencil size={14} />}
-                onClick={() => openForm(c)}
-              >
-                Sửa
-              </Button>
-              <Popconfirm
-                title={c.status === "OPEN" ? "Đóng khóa học?" : "Mở khóa học?"}
-                description="Lịch sử lớp và học phí đã chốt vẫn được giữ."
-                okText="Xác nhận"
-                cancelText="Hủy"
-                onConfirm={() => toggle(c)}
-                disabled={busyId !== null}
-              >
-                <Button
-                  size="small"
-                  loading={busyId === c.id}
-                  disabled={busyId !== null}
-                >
-                  {c.status === "OPEN" ? "Đóng" : "Mở"}
-                </Button>
-              </Popconfirm>
-            </>
-          )}
-        </Space>
+          </Button></TableActions>
       ),
     },
   ];

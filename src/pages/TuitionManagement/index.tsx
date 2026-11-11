@@ -1,3 +1,4 @@
+import TableActions from '../../components/Common/TableActions';
 import { useListQuery } from "../../hooks/useListQuery";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -115,31 +116,23 @@ export default function TuitionManagement() {
     message.success("Đã xác nhận phiếu thu.");
   }
   const actions = (t: TuitionDto, view = true) => (
-    <Space wrap>
-      {view && (
-        <Button size="small" onClick={() => focus(t.id)}>
+    <TableActions items={[
+    ...((canAdjustTuition(user?.role) && t.status !== "CANCELLED") ? ([
+        {
+            key: "action-1", label: "Điều chỉnh", onClick: () => setAdjust(t)
+        }
+    ]) : []),
+    {
+        key: "action-2", label: "Phiếu thu", to: "/payments?tuitionId=" + t.id
+    }
+]}>{view && (<Button size="small" onClick={() => focus(t.id)}>
           Xem
-        </Button>
-      )}
-      {canCollect(t) && (
-        <Button
-          size="small"
-          type="primary"
-          disabled={!!financial.draft || !!financial.error}
-          onClick={() => setCollect({ id: t.id })}
-        >
+        </Button>)}
+    {canCollect(t) && (<Button size="small" type="primary" disabled={!!financial.draft || !!financial.error} onClick={() => setCollect({
+        id: t.id
+    })}>
           Thu tiền
-        </Button>
-      )}
-      {canAdjustTuition(user?.role) && t.status !== "CANCELLED" && (
-        <Button size="small" onClick={() => setAdjust(t)}>
-          Điều chỉnh
-        </Button>
-      )}
-      <Link to={"/payments?tuitionId=" + t.id}>
-        <Button size="small">Phiếu thu</Button>
-      </Link>
-    </Space>
+        </Button>)}</TableActions>
   );
   const columns: TableColumnsType<TuitionDto> = [
     {
@@ -211,7 +204,7 @@ export default function TuitionManagement() {
       title: "Thao tác",
       key: "actions",
       fixed: "right",
-      width: 310,
+      width: 230,
       render: (_, t) => actions(t),
     },
   ];

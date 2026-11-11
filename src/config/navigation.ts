@@ -39,6 +39,8 @@ export const NAVIGATION: readonly NavigationItem[] = [
     } },
   { id: 'branches', path: '/branches', label: 'Chi nhánh', group: 'HỆ THỐNG', icon: 'branch', roles: ['SUPER_ADMIN'],
     description: 'Tạo, cập nhật và bật/tắt chi nhánh.' },
+  { id: 'administrators', path: '/administrators', label: 'Quản trị viên', group: 'HỆ THỐNG', icon: 'accounts', roles: ['SUPER_ADMIN'],
+    description: 'Tạo và quản lý Admin, phân công nhiều chi nhánh và xem lịch sử phân công.' },
   { id: 'accounts', path: '/accounts', label: 'Tài khoản', group: 'HỆ THỐNG', icon: 'accounts', roles: MANAGERS,
     description: 'Xem, tạo và khóa/mở tài khoản theo quyền.',
     roleDescriptions: { SUPER_ADMIN: 'Tạo Admin, Staff, Teacher và quản lý tài khoản theo chi nhánh.',

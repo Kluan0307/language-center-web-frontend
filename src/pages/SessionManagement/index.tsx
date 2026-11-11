@@ -1,19 +1,9 @@
+import TableActions from '../../components/Common/TableActions';
 import { ClassTimeProgress } from "../../components/Common/Placement/DurationPanel";
 import { durationLabel, sessionMinutes } from "../../utils/duration";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  DatePicker,
-  Select,
-  Space,
-  Table,
-  Tag,
-  Typography,
-} from "antd";
+import { Alert, App, Button, Card, DatePicker, Select, Table, Tag, Typography } from "antd";
 import dayjs from "dayjs";
 import {
   ManagementLayout,
@@ -314,72 +304,42 @@ export default function SessionManagement() {
             {
               title: "Thao tác",
               key: "actions",
-              width: 330,
+              width: 230,
               render: (_, s) => (
-                <Space wrap>
-                  <Button size="small" onClick={() => setDetail(s.id)}>
+                <TableActions items={[
+    ...((manager && !s.classClosed && s.status === "SCHEDULED") ? ([
+        {
+            key: "action-1", label: "Đổi lịch / dạy thay", disabled: busy !== null, onClick: () => void edit(s, "edit")
+        },
+        {
+            key: "action-2", label: "Hủy buổi", disabled: busy !== null, danger: true, onClick: () => void edit(s, "cancel")
+        }
+    ]) : []), ...((manager && !s.classClosed && s.status === "CANCELLED") ? ([
+        {
+            key: "action-3", label: "Khôi phục", disabled: busy !== null, onClick: () => void edit(s, "restore")
+        },
+        ...((s.kind === "REGULAR" && !s.makeupSessionId) ? ([
+            {
+                key: "action-4", label: "Học bù", disabled: busy !== null, onClick: () => void edit(s, "makeup")
+            }
+        ]) : [])
+    ]) : []), ...((s.makeupSessionId) ? ([
+        {
+            key: "action-5", label: <>Buổi bù #{s.makeupSessionId}</>, onClick: () => setDetail(s.makeupSessionId)
+        }
+    ]) : [])
+]}><Button size="small" onClick={() => setDetail(s.id)}>
                     Xem
                   </Button>
-                  {s.sessionDate <= today && s.status !== "CANCELLED" && (
-                    <Link to={attendanceLink(s.id)}>
+    {s.sessionDate <= today && s.status !== "CANCELLED" && (<Link to={attendanceLink(s.id)}>
                       <Button size="small">
                         {s.canAttend
-                          ? s.status === "COMPLETED"
-                            ? "Sửa điểm danh"
-                            : "Điểm danh"
-                          : "Xem điểm danh"}
+            ? s.status === "COMPLETED"
+                ? "Sửa điểm danh"
+                : "Điểm danh"
+            : "Xem điểm danh"}
                       </Button>
-                    </Link>
-                  )}
-                  {manager && !s.classClosed && s.status === "SCHEDULED" && (
-                    <>
-                      <Button
-                        size="small"
-                        disabled={busy !== null}
-                        onClick={() => void edit(s, "edit")}
-                      >
-                        Đổi lịch / dạy thay
-                      </Button>
-                      <Button
-                        size="small"
-                        danger
-                        disabled={busy !== null}
-                        onClick={() => void edit(s, "cancel")}
-                      >
-                        Hủy buổi
-                      </Button>
-                    </>
-                  )}
-                  {manager && !s.classClosed && s.status === "CANCELLED" && (
-                    <>
-                      <Button
-                        size="small"
-                        disabled={busy !== null}
-                        onClick={() => void edit(s, "restore")}
-                      >
-                        Khôi phục
-                      </Button>
-                      {s.kind === "REGULAR" && !s.makeupSessionId && (
-                        <Button
-                          size="small"
-                          disabled={busy !== null}
-                          onClick={() => void edit(s, "makeup")}
-                        >
-                          Học bù
-                        </Button>
-                      )}
-                    </>
-                  )}
-                  {s.makeupSessionId && (
-                    <Button
-                      size="small"
-                      type="link"
-                      onClick={() => setDetail(s.makeupSessionId)}
-                    >
-                      Buổi bù #{s.makeupSessionId}
-                    </Button>
-                  )}
-                </Space>
+                    </Link>)}</TableActions>
               ),
             },
           ]}

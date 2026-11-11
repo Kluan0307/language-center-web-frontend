@@ -1,5 +1,6 @@
+import TableActions from '../../components/Common/TableActions';
 import { useState } from 'react';
-import { App, Alert, Button, Card, Descriptions, Drawer, Form, Input, Modal, Popconfirm, Space, Table, Tag, Typography } from 'antd';
+import { App, Alert, Button, Card, Descriptions, Drawer, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { Building2, Eye, Pencil, Plus, RefreshCw } from 'lucide-react';
 import { ManagementLayout, Filters } from '../../components/Layout/ManagementLayout';
@@ -72,19 +73,20 @@ export default function BranchManagement() {
     { title: 'Địa chỉ', dataIndex: 'address', render: (value) => value || '—', ellipsis: true },
     { title: 'Trạng thái', dataIndex: 'status', render: (status) =>
       <Tag color={status === 'ACTIVE' ? 'green' : 'default'}>{status === 'ACTIVE' ? 'Đang hoạt động' : 'Ngừng hoạt động'}</Tag> },
-    { title: 'Thao tác', key: 'actions', width: 240, render: (_, b) => <Space wrap>
-      <Button size="small" icon={<Eye size={14} />} onClick={() => setDetail(b)}>Xem</Button>
-      {canEdit && <>
-        <Button size="small" icon={<Pencil size={14} />} onClick={() => openForm(b)}>Sửa</Button>
-        <Popconfirm title={b.status === 'ACTIVE' ? 'Ngừng hoạt động chi nhánh?' : 'Bật hoạt động chi nhánh?'}
-          description="Dữ liệu và lịch sử được giữ lại." okText="Xác nhận" cancelText="Hủy"
-          onConfirm={() => toggle(b)} disabled={busyId !== null}>
-          <Button size="small" danger={b.status === 'ACTIVE'} loading={busyId === b.id} disabled={busyId !== null}>
-            {b.status === 'ACTIVE' ? 'Ngừng' : 'Bật lại'}
-          </Button>
-        </Popconfirm>
-      </>}
-    </Space> },
+    { title: 'Thao tác', key: 'actions', width: 160, render: (_, b) => <TableActions items={[
+    ...((canEdit) ? ([
+        {
+            key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => openForm(b)
+        },
+        {
+            key: "action-2", label: b.status === 'ACTIVE' ? 'Ngừng' : 'Bật lại', loading: busyId === b.id, danger: b.status === 'ACTIVE', disabled: (busyId !== null) || (busyId !== null), confirm: {
+                title: b.status === 'ACTIVE' ? 'Ngừng hoạt động chi nhánh?' : 'Bật hoạt động chi nhánh?', okText: "Xác nhận", cancelText: "Hủy", content: "Dữ liệu và lịch sử được giữ lại.", okButtonProps: {
+                    danger: b.status === 'ACTIVE'
+                }, onOk: () => toggle(b)
+            }
+        }
+    ]) : [])
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setDetail(b)}>Xem</Button></TableActions> },
   ];
   return <ManagementLayout title="Chi nhánh" description="Quản lý thông tin và trạng thái các chi nhánh trong hệ thống."
     actions={<>
