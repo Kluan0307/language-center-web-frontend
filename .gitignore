@@ -25,3 +25,12 @@ dist-ssr
 
 .env
 .env.local
+
+# Local Student App qualification logs
+phase3-*.log
+
+phase5-*.log
+
+phase6-*.log
+
+phase7-*.log

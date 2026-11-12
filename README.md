@@ -137,3 +137,18 @@ G20 đã kiểm tra FEbuild tĩnh cùng JAR trong release, restore và UI4role. 
 ## Release đã nghiệm thu ngày 11/11/2026
 
 FE static trong release mới đã chạy cùng 5 JAR, đạt kiểm thử UI 4 role trước/sau backup-restore. Xem [báo cáo giai đoạn 6](../language-center-backend/language-center-backend/docs/reviews/2026-11-11-phase-6-completion.md) để lấy ZIP và hướng dẫn bàn giao. Bản snapshot được giữ nguyên; hồ sơ qualification ràng buộc SHA256 manifest lưu riêng cùng ZIP.
+
+## Student App G3
+
+Web Học viên -> Xem -> Tài khoản ứng dụng cho SUPER_ADMIN/ADMIN đúng phạm vi: cấp, kiểm tra kết quả, khóa/mở, cấp lại mật khẩu. [Hướng dẫn migration V014 và tài khoản học viên](../language-center-backend/language-center-backend/docs/student-app/account-user-guide.md). App học viên riêng; không thêm STUDENT vào quyền sidebar quản trị.
+
+
+
+## Student G8 — thanh toán online
+
+Trang `/online-payments` dành cho SUPER_ADMIN/ADMIN/STAFF. SUPER_ADMIN/ADMIN querydr với lý do/version/UUID; STAFF chỉ xem theo chi nhánh. [Cấu hình và giới hạn sandbox](../language-center-backend/language-center-backend/docs/student-app/phase-8-completion.md).
+
+
+## Student G9 — nguồn thông báo
+
+Các thao tác lịch, công bố/thu hồi điểm, chia sẻ học liệu, phản hồi công khai và tài chính hiện phát sự kiện cùng transaction ở backend. Không cần thao tác gửi thông báo riêng; ghi chú hỗ trợ nội bộ không thông báo cho student. [Cấu hình G9](../language-center-backend/language-center-backend/docs/student-app/phase-9-completion.md).

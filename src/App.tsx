@@ -47,9 +47,11 @@ const EnrollmentManagement = lazy(() => import('./pages/EnrollmentManagement'));
 const AttendanceManagement = lazy(() => import('./pages/AttendanceManagement'));
 const LeadsPage = lazy(() => import('./pages/Leads'));
 const TuitionManagement = lazy(() => import('./pages/TuitionManagement'));
+const OnlinePayments = lazy(() => import('./pages/OnlinePayments'));
 const PaymentManagement = lazy(() => import('./pages/PaymentManagement'));
 const Reports = lazy(() => import('./pages/Reports'));
 const ExamManagement = lazy(() => import('./pages/ExamManagement'));
+const SupportManagement = lazy(() => import('./pages/SupportManagement'));
 const GradeManagement = lazy(() => import('./pages/GradeManagement'));
 const DocumentManagement = lazy(() => import('./pages/DocumentManagement'));
 
@@ -63,7 +65,7 @@ const PAGES: Record<string, ReactNode> = {
   teachers: <TeachersRoute />, staff: <AccountManagement key="staff" fixedRole="STAFF" />, programs: <ProgramManagement />, courses: <CourseManagement />,
   classes: <ClassManagement key="classes" />, rooms: <RoomManagement />, schedule: <ScheduleManagement key="schedule" />,
   'my-classes': <ClassManagement key="my-classes" />, 'my-schedule': <ScheduleManagement key="my-schedule" />, enrollment: <EnrollmentManagement />,
-  attendance: <AttendanceManagement />, exams: <ExamManagement />, grades: <GradeManagement />, documents: <DocumentManagement />, tuition: <TuitionManagement />, payments: <PaymentManagement />, reports: <Reports />,
+  attendance: <AttendanceManagement />, exams: <ExamManagement />, grades: <GradeManagement />, support: <SupportManagement />, documents: <DocumentManagement />, tuition: <TuitionManagement />, payments: <PaymentManagement />, online: <OnlinePayments />, reports: <Reports />,
 };
 
 function App() {

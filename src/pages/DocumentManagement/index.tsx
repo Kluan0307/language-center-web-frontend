@@ -1,3 +1,4 @@
+import DocumentSharing from "./DocumentSharing";
 import TableActions from '../../components/Common/TableActions';
 import {useState} from 'react';
 import {useSearchParams} from 'react-router-dom';
@@ -79,7 +80,7 @@ export default function DocumentManagement(){
   </Card>
   <Drawer open={selectedId!==null} title="Chi tiết tài liệu" size={760} loading={detail.loading} onClose={()=>setParams({})}>
    <LoadError error={detail.error} reload={detail.reload}/>
-   {d&&<><Space wrap style={{marginBottom:16}}>{actions(d,false)}</Space><Descriptions bordered column={1} items={[
+   {d&&<><Space wrap style={{marginBottom:16}}>{actions(d,false)}</Space>{user?.role!=="STAFF"&&<div style={{marginBottom:16}}><DocumentSharing document={d} onSaved={refresh}/></div>}<Descriptions bordered column={1} items={[
     {key:'title',label:'Tiêu đề',children:d.title},{key:'file',label:'File',children:d.filename+' · '+fileSize(d.fileSize)},
     {key:'description',label:'Mô tả',children:<span style={{whiteSpace:'pre-wrap'}}>{d.description||'—'}</span>},
     {key:'branch',label:'Chi nhánh',children:branchLabel(branches.data,d.branchId)},

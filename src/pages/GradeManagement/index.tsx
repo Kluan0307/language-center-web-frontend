@@ -1,3 +1,4 @@
+import StudentPublicationPanel from "./StudentPublicationPanel";
 import FinalResultPanel from "../../components/Common/Evaluation/FinalResultPanel";
 import EvaluationWorkspace from "../../components/Common/Evaluation/EvaluationWorkspace";
 import { useState } from "react";
@@ -190,6 +191,7 @@ export default function GradeManagement() {
                 label: "Bảng điểm",
                 children: (
                   <>
+                    {valid && examId && <StudentPublicationPanel key={examId+"-"+evaluationRevision} examId={examId}/>}
                     <LoadError
                       error={selected.error}
                       reload={selected.reload}
@@ -275,7 +277,7 @@ export default function GradeManagement() {
                                     : "Chưa nhập",
                               },
                               {
-                                title: "Nhận xét",
+                                title: "Ghi chú nội bộ",
                                 key: "comment",
                                 render: (_, r) => r.grade?.comment || "—",
                               },

@@ -1,3 +1,4 @@
+﻿import StudentAccountPanel from './StudentAccountPanel';
 import TableActions from '../../components/Common/TableActions';
 import { useListQuery } from "../../hooks/useListQuery";
 import { useState } from "react";
@@ -125,6 +126,7 @@ function StudentStatusForm({
 }
 export default function StudentManagement() {
   const { user } = useAuth();
+  const [detailTab, setDetailTab] = useState('profile');
   const { message } = App.useApp();
   const branches = useBranches();
   const [params, setParams] = useSearchParams();
@@ -365,7 +367,7 @@ export default function StudentManagement() {
             <Space wrap style={{ marginBottom: 20 }}>
               {actions(s)}
             </Space>
-            <Tabs
+            <Tabs activeKey={detailTab} onChange={setDetailTab}
               items={[
                 {
                   key: "profile",
@@ -452,6 +454,7 @@ export default function StudentManagement() {
                     />
                   ),
                 },
+                ...(user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ? [{ key: 'student-account', label: 'Tài khoản ứng dụng', children: <StudentAccountPanel key={s.id} studentId={s.id} onChanged={() => { detail.reload(); list.reload(); }} /> }] : []),
                 {
                   key: "enrollments",
                   label: "Lịch sử đăng ký",
@@ -537,3 +540,5 @@ export default function StudentManagement() {
     </ManagementLayout>
   );
 }
+
+
