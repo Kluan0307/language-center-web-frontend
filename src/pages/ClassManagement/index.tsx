@@ -1,7 +1,8 @@
+import {scopeLabel as pageScopeLabel} from '../../utils/managementScope';
 import TableActions from '../../components/Common/TableActions';
 import { useListQuery } from "../../hooks/useListQuery";
 import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import {useState} from "react";
 import { App, Alert, Button, Card, Select, Space, Table, Tag, Typography, Input } from "antd";
 import type { TableColumnsType } from "antd";
 import { Eye, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
@@ -165,7 +166,7 @@ export default function ClassManagement() {
             }
         ]) : []),
         {
-            key: "action-3", label: "Xóa", icon: <Trash2 size={14}/>, loading: busyId === c.id, danger: true, disabled: (busyId !== null) || (busyId !== null), confirm: {
+            key: "action-3", label: "Xóa", icon: <Trash2 size={14}/>, loading: busyId === c.id, danger: true, disabled: busyId !== null, confirm: {
                 title: "Xóa lớp học?", okText: "Xóa", cancelText: "Hủy", content: "Chỉ xóa được lớp chưa từng có đăng ký. Lịch tuần của lớp cũng sẽ bị xóa.", okButtonProps: {
                     danger: true
                 }, onOk: () => mutate(c, "delete")
@@ -179,7 +180,7 @@ export default function ClassManagement() {
     },
   ];
   return (
-    <ManagementLayout
+    <ManagementLayout scopeLabel={pageScopeLabel(user,branches.data,query.branchId,false)}
       title={teacher ? "Lớp của tôi" : "Lớp học"}
       description={
         teacher
@@ -260,10 +261,10 @@ export default function ClassManagement() {
             }
           />
           <Typography.Text type="secondary">
-            {list.data?.totalElements ?? 0} lớp
+            {list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} lớp
           </Typography.Text>
         </Filters>
-        <Table<ClassDto>
+        {!list.error&&<Table<ClassDto>
           rowKey="id"
           columns={columns}
           dataSource={list.data?.content ?? []}
@@ -287,7 +288,7 @@ export default function ClassManagement() {
                 size,
               })),
           }}
-        />
+        />}
       </Card>
       {detailId !== null && (
         <ClassDetails

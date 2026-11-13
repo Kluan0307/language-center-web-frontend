@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import {scopeLabel as accountScope} from '../../utils/managementScope';
+import {useListQuery} from '../../hooks/useListQuery';
+import {useEffect,useState} from 'react';
 import { Alert, App, Button, Card, Col, Descriptions, Divider, Drawer, Form, Input, Modal, Dropdown, Row, Select, Space, Table, Tag, Typography, DatePicker } from 'antd';
 import type { TableColumnsType } from 'antd';
 import type { Dayjs } from 'dayjs';
@@ -24,10 +26,11 @@ type AccountForm = Omit<CreateUserRequest, 'hireDate'> & { hireDate?: Dayjs; con
 export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' | 'STAFF' | 'TEACHER' }) {
   const { user } = useAuth();
   const { message, modal } = App.useApp();
-  const [query, setQuery] = useState<{ page: number; size: number; keyword: string; branchId?: number; role?: Role }>({ page: 0, size: 10, keyword: '' });
+  const [query, setQuery] = useListQuery<{ page:number;size:number;keyword?:string;branchId?:number;role?:Role }>([]);
   const resource = useAccounts({ ...query, role: fixedRole ?? query.role });
   const branches = useRemoteResource(branchService.all, {});
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(query.keyword??'');
+ useEffect(()=>setSearch(query.keyword??''),[query.keyword]);
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<AccountForm>();
   const role = Form.useWatch('role', form);
@@ -124,7 +127,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
       </Space>;
     } },
   ];
-  return <ManagementLayout title={title}
+  return <ManagementLayout scopeLabel={accountScope(user,branches.data,query.branchId)} title={title}
     description={fixedRole === 'ADMIN' ? 'Quản lý Admin, phân công các chi nhánh phụ trách và theo dõi lịch sử thay đổi.' : isSuper ? 'Quản lý tài khoản và hồ sơ nhân sự theo từng chi nhánh.' : 'Quản lý nhân sự trong chi nhánh của bạn.'}
     actions={<>
       <Button icon={<RefreshCw size={16} />} onClick={() => { resource.reload(); branches.reload(); }} loading={resource.loading}>Tải lại</Button>
@@ -149,7 +152,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
           aria-label="Lọc chi nhánh" loading={branches.loading} value={query.branchId}
           options={branches.data?.map((b) => ({ value: b.id, label: `${b.code} · ${b.name}${b.status === 'INACTIVE' ? ' (Ngừng)' : ''}` }))}
           onChange={(branchId: number | undefined) => setQuery((q) => ({ ...q, branchId, page: 0 }))} />}
-        <Typography.Text type="secondary">{resource.data?.totalElements ?? 0} tài khoản</Typography.Text>
+        <Typography.Text type="secondary">{resource.loading?'Đang tải…':resource.error?'—':resource.data?.totalElements??'—'} tài khoản</Typography.Text>
       </Filters>
       <Table<UserResponse> rowKey="accountId" columns={columns} dataSource={resource.accounts}
         loading={resource.loading} scroll={{ x: isSuper ? 1100 : 900 }}

@@ -1,5 +1,10 @@
 # Language Center Frontend
 
+**Trợ lý C6 — 13/11/2026:** đã có drawer Ant Design + styled-components cho bốn role; card, lựa chọn trùng tên, scope/chi nhánh, retry và xử lý phiên đổi. 119 test web đạt, build và lint phần C6 đạt. [Bàn giao, ảnh UI, cách chạy và giới hạn](../language-center-backend/language-center-backend/docs/assistant/c6-completion.md). Gemini/API thật còn nghiệm thu C7; không đưa key vào frontend.
+
+**Web W6–W8 — 13/11/2026:** hoàn thiện học vụ/giảng dạy, dashboard công việc theo role và UI đồng nhất. 109 test web và build đạt; 16 nhóm UI fixtures và 9 nhóm hồi quy đạt. [Bàn giao, ảnh và nghiệm thu còn lại](../language-center-backend/language-center-backend/docs/improvements/web-w6-w7-w8-completion.md). Bộ lọc lưu URL; quyền đa chi nhánh do backend kiểm tra. Các số liệu bên dưới là lịch sử từng mốc.
+
+
 **Cập nhật11/11/2026:** Có trang quản lý Admin `/administrators`, Chương trình & trình độ `/programs`, sidebar cố định, menu thao tác gọn và lịch sử trước/sau. Lịch học/lịch dạy dùng FullCalendar6 Time-grid tuần/ngày/danh sách; bộ lọc/ngày lưu URL.96tests, lint/build và nghiệm thu thật đạt theo [giai đoạn5](../language-center-backend/language-center-backend/docs/reviews/2026-11-11-phase-5-completion.md). Các file mock/trang TeacherManagement/StaffManagement cũ đã dọn. Mốc10/11 bên dưới là lịch sử.
 
 **Nghiệm thu lại G17–G18 ngày 10/11/2026:** 12 ca Edge thật đạt cùng backend/MySQL riêng (tổng86ca). [Chạy lại và demo](../language-center-backend/language-center-backend/deployment/acceptance-g17-g18.md). Không coi build/Vitest là thay thế browser acceptance.

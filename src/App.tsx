@@ -1,14 +1,16 @@
+import {managementTheme} from './components/Common/theme';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, App as AntdApp, Spin } from 'antd';
 import viVN from 'antd/locale/vi_VN';
 import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute } from './components/Common';
+import { ProtectedRoute } from './components/Common/ProtectedRoute';
 import { NAVIGATION } from './config/navigation';
 import { useAuth } from './hooks/useAuth';
-import Login from './pages/Login';
+const Assistant = lazy(() => import('./components/Assistant'));
+const Login=lazy(()=>import('./pages/Login'));
 
-import { FeaturePage, StatusPage } from './pages/Feature';
+const StatusPage=lazy(()=>import('./pages/Feature').then(module=>({default:module.StatusPage})));
 
 
 
@@ -29,7 +31,7 @@ import { FeaturePage, StatusPage } from './pages/Feature';
 
 
 import { GlobalStyle } from './App.styles';
-import { MessageGlobalStyle } from './components/Common';
+import { MessageGlobalStyle } from './components/Common/Message/Message.styles';
 
 const Overview = lazy(() => import('./pages/Overview'));
 const StudentManagement = lazy(() => import('./pages/StudentManagement'));
@@ -70,19 +72,17 @@ const PAGES: Record<string, ReactNode> = {
 
 function App() {
   return (
-    <ConfigProvider locale={viVN} theme={{ token: {
-      colorPrimary: '#2563EB', colorSuccess: '#059669', colorWarning: '#D97706',
-      colorError: '#EF4444', colorInfo: '#2563EB', borderRadius: 8, fontFamily: 'inherit',
-    } }}>
+    <ConfigProvider locale={viVN} theme={managementTheme}>
       <AntdApp message={{ top: 24, duration: 3, maxCount: 3 }}>
         <BrowserRouter>
           <AuthProvider>
             <GlobalStyle /><MessageGlobalStyle />
+            <Suspense fallback={null}><Assistant /></Suspense>
             <Suspense fallback={<div role="status" style={{ padding: 48, textAlign: 'center' }}><Spin /><p>Đang tải trang…</p></div>}><Routes>
               <Route path="/login" element={<Login />} />
               {NAVIGATION.map((item) => (
                 <Route key={item.id} element={<ProtectedRoute allowedRoles={item.roles} />}>
-                  <Route path={item.path} element={PAGES[item.id] ?? <FeaturePage item={item} />} />
+                  <Route path={item.path} element={PAGES[item.id] ?? <StatusPage status="404" />} />
                 </Route>
               ))}
               <Route element={<ProtectedRoute />}>

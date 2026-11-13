@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Alert, Button, Spin } from 'antd';
 import * as S from './Login.styles';
 import LoginForm from '../../components/Layout/LoginForm';
-import { message } from '../../components/Common';
+import { message } from '../../components/Common/Message';
 import { useAuth } from '../../hooks/useAuth';
 import { getErrorMessage } from '../../utils/apiErrors';
 import type { LoginPayload } from '../../types';
@@ -27,7 +27,7 @@ function Login() {
     } catch (error) { setErrorMessage(getErrorMessage(error)); }
     finally { setIsLoading(false); }
   };
-  if (restoring) return <Spin fullscreen tip="Đang khôi phục phiên đăng nhập…" />;
+  if (restoring) return <Spin fullscreen description="Đang khôi phục phiên đăng nhập…" />;
   return <S.LoginContainer>
     <S.LoginLeft><S.LoginLeftContent>
       <S.LoginBrand>Language Center Management</S.LoginBrand>

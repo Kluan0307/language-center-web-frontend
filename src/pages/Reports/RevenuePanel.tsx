@@ -1,3 +1,6 @@
+import {displayDate} from '../../utils/display';
+import {useAuth} from '../../hooks/useAuth';
+import {managementCourses} from '../../services/managementOptions';
 import {Alert,Button,Card,DatePicker,Empty,Progress,Space,Table,Typography} from 'antd';
 import dayjs from 'dayjs';
 import ReconciliationPanel from './ReconciliationPanel';
@@ -5,7 +8,7 @@ import {Metric} from '../../components/Common/Reports';
 import {MetricGrid,TwoColumns} from '../../components/Common/Reports/Reports.styles';
 import {LoadError} from '../../components/Common/Academic';
 import {useRemoteResource} from '../../hooks/useRemoteResource';
-import {courseService} from '../../services/academicService';
+
 import {reportService} from '../../services/reportService';
 import {money} from '../../utils/academic';
 import {exportCsv,orderedMonths} from '../../utils/reports';
@@ -15,7 +18,7 @@ async function load({query,valid}:{query:RevenueQuery;valid:boolean;revision?:nu
 export default function RevenuePanel({allAssigned=false,branchId,branches,scope,from,to,onRange,revision}:{allAssigned?:boolean;branchId?:number;branches?:Branch[];scope:string;from?:string;to?:string;onRange:(from?:string,to?:string)=>void;revision:number}){
  const valid=!from||!to||from<=to;
  const report=useRemoteResource(load,{query:{branchId,from,to,allAssigned},valid,revision});
- const courses=useRemoteResource(courseService.all,{branchId});
+ const {user}=useAuth();const courses=useRemoteResource(managementCourses,{branchId,allAssigned,branchIds:user?.branchIds});
  const months=orderedMonths(report.data?.byMonth??[]);
  const max=Math.max(0,...months.map(r=>Math.abs(r.amount)));
  const courseName=(key:string)=>key==='null'?'Chưa gắn khóa':courses.data?.find(c=>String(c.id)===key)?.name||'Khóa #'+key;
@@ -31,7 +34,7 @@ export default function RevenuePanel({allAssigned=false,branchId,branches,scope,
    <DatePicker aria-label="Thu đến ngày" placeholder="Đến hết ngày" format="DD/MM/YYYY" needConfirm={false} value={to?dayjs(to):null} onChange={d=>onRange(from,d?.format('YYYY-MM-DD'))}/>
    <Button disabled={!report.data||report.loading||!!report.error||!valid} onClick={download}>Tải CSV tài chính</Button></Space>
   {!valid&&<Alert showIcon type="warning" title="Từ ngày không được sau đến ngày"/>}
-  <LoadError error={report.error} reload={report.reload}/>
+  <LoadError error={report.error} reload={report.reload}/>{report.data&&report.loadedAt&&<Typography.Text type="secondary">Tải dữ liệu tài chính lúc {displayDate(report.loadedAt)}</Typography.Text>}
   <Alert showIcon type="info" title="Tiền thu theo kỳ, công nợ tại hiện tại" description="Thu ròng = thu gốc − đảo phiếu − hoàn tiền; mỗi giao dịch tính theo ngày phát sinh riêng (tính cả hai ngày đầu/cuối). Công nợ là tổng số còn phải thu hiện tại của học phí chưa hủy, không phải công nợ tại ngày kết thúc kỳ."/>
   <MetricGrid><Metric title="Thu gốc (VND)" value={report.data?.grossCollected} loading={report.loading}/><Metric title="Đảo phiếu (VND)" value={report.data?.voided} loading={report.loading}/><Metric title="Hoàn tiền (VND)" value={report.data?.refunded} loading={report.loading}/><Metric title="Tiền dư hiện tại (VND)" value={report.data?.credit} loading={report.loading}/><Metric title="Thu ròng trong khoảng (VND)" value={report.data?.collected} loading={report.loading}/><Metric title="Công nợ hiện tại (VND)" value={report.data?.outstanding} loading={report.loading}/></MetricGrid>
   <TwoColumns>

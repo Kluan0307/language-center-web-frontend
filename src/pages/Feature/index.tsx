@@ -1,27 +1,7 @@
-import { Alert, Button, Card, Result, Typography } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import {Button,Result} from 'antd';
+import {Link,useLocation} from 'react-router-dom';
 import Sidebar from '../../components/Layout/Sidebar';
-import { useAuth } from '../../hooks/useAuth';
-import { getItemDescription, getItemLabel, type NavigationItem } from '../../config/navigation';
 import * as S from '../Overview/Overview.styles';
-
-export function FeaturePage({ item }: { item: NavigationItem }) {
-  const { user } = useAuth();
-  if (!user) return null;
-  return (
-    <S.OverviewContainer>
-      <Sidebar />
-      <S.MainContent>
-        <Typography.Title level={2}>{getItemLabel(item, user.role)}</Typography.Title>
-        <Card>
-          <Typography.Paragraph>{getItemDescription(item, user.role)}</Typography.Paragraph>
-          <Alert type="info" showIcon title="Chức năng đang được triển khai"
-            description="Mục điều hướng và quyền truy cập đã được thiết lập. Màn hình nghiệp vụ và kết nối dữ liệu sẽ được bổ sung ở đợt tiếp theo." />
-        </Card>
-      </S.MainContent>
-    </S.OverviewContainer>
-  );
-}
 export function StatusPage({ status }: { status: '403' | '404' }) {
   const location = useLocation();
   const from: unknown = location.state?.from;

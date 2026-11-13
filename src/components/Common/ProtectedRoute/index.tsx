@@ -8,7 +8,7 @@ interface ProtectedRouteProps { allowedRoles?: readonly Role[] }
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user, sessionError, refreshUser, logout } = useAuth();
   const location = useLocation();
-  if (isLoading) return <Spin fullscreen tip="Đang xác thực tài khoản…" />;
+  if (isLoading) return <Spin fullscreen description="Đang xác thực tài khoản…" />;
   if (sessionError) return <Result status="warning" title="Chưa thể xác thực phiên đăng nhập"
     subTitle={sessionError} extra={<Space>
       <Button type="primary" onClick={() => void refreshUser()}>Thử lại</Button>

@@ -4,7 +4,7 @@ export function shiftScheduleDate(date: string, days: number): string {
   const value = new Date(date + 'T00:00:00Z'); value.setUTCDate(value.getUTCDate() + days);
   return value.toISOString().slice(0, 10);
 }
-function dateOr(value: string | null, fallback: string): string {
+export function dateOr(value: string | null, fallback: string): string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return fallback;
   const parsed = new Date(value + 'T00:00:00Z');
   return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value ? value : fallback;
@@ -31,13 +31,14 @@ export function readScheduleState(params: URLSearchParams, today: string, defaul
     query: {
       page: Number.isSafeInteger(page) && page >= 0 ? page : 0,
       size: [10, 20, 50, 100].includes(size) ? size : 10,
+      ...(params.get('allAssigned')==='true'?{allAssigned:true}:{}),
       branchId: id(params.get('branchId')), classId: id(params.get('classId')), teacherId: id(params.get('teacherId')),
       status: ['SCHEDULED', 'COMPLETED', 'CANCELLED'].includes(status ?? '') ? status as SessionStatus : undefined,
       from: listDate('from', shiftScheduleDate(today, -7)), to: listDate('to', shiftScheduleDate(today, 30)),
     },
   };
 }
-export function updateScheduleParams(previous: URLSearchParams, patch: Record<string, string | number | undefined>): URLSearchParams {
+export function updateScheduleParams(previous: URLSearchParams, patch: Record<string, string | number | boolean | undefined>): URLSearchParams {
   const next = new URLSearchParams(previous);
   for (const [key, value] of Object.entries(patch)) {
     if (value === undefined) next.delete(key); else next.set(key, String(value));

@@ -1,3 +1,5 @@
+import ClassWorkspaceTabs from './ClassWorkspaceTabs';
+import {ContextLink} from '../../components/Common/ContextLink';
 import ClassClosurePanel from "../../components/Common/Evaluation/ClassClosurePanel";
 import { ClassDurationPanel } from "../../components/Common/Placement/DurationPanel";
 import {
@@ -7,10 +9,10 @@ import {
   Drawer,
   Space,
   Table,
-  Tabs,
+  Typography,
   Tag,
 } from "antd";
-import { Link } from "react-router-dom";
+
 import { useAuth } from "../../hooks/useAuth";
 import { useRemoteResource } from "../../hooks/useRemoteResource";
 import { classService } from "../../services/academicService";
@@ -46,33 +48,34 @@ export default function ClassDetails({
       <LoadError error={detail.error} reload={detail.reload} />
       {c && (
         <>
-          <Space wrap style={{ marginBottom: 20 }}>
+          <Typography.Title level={3} style={{marginTop:0}}>{c.code} · {c.name}</Typography.Title><Space wrap style={{marginBottom:16}}><Tag>{c.currentSize}/{c.maxSize} học viên</Tag><Tag>{c.teacherName??'Chưa phân công'}</Tag><Tag>{c.roomName??'Chưa có phòng'}</Tag></Space>
+          <Space wrap size={12} style={{ marginBottom: 20 }}>
             <Tag color="blue">{PROGRESS[c.status]}</Tag>
             {c.full && <Tag color="orange">Đủ chỗ</Tag>}
             {onEdit && <Button onClick={() => onEdit(c)}>Chỉnh sửa lớp</Button>}
-            <Link
+            <ContextLink
               to={`${teacher ? "/my-schedule" : "/schedule"}?classId=${c.id}`}
             >
               <Button>{teacher ? "Xem lịch dạy" : "Mở lịch của lớp"}</Button>
-            </Link>
-            <Link to={"/attendance?classId=" + c.id}>
+            </ContextLink>
+            <ContextLink to={"/attendance?classId=" + c.id}>
               <Button>Điểm danh</Button>
-            </Link>
+            </ContextLink>
             {user?.role !== "STAFF" && (
               <>
-                <Link to={"/exams?classId=" + c.id}>
+                <ContextLink to={"/exams?classId=" + c.id}>
                   <Button>Bài kiểm tra</Button>
-                </Link>
-                <Link to={"/grades?classId=" + c.id}>
+                </ContextLink>
+                <ContextLink to={"/grades?classId=" + c.id}>
                   <Button>Bảng điểm</Button>
-                </Link>
+                </ContextLink>
               </>
             )}
-            <Link to="/documents">
+            <ContextLink to={"/documents?classId="+c.id}>
               <Button>Tài liệu</Button>
-            </Link>
+            </ContextLink>
           </Space>
-          <Tabs
+          <ClassWorkspaceTabs manager={user?.role==='ADMIN'||user?.role==='SUPER_ADMIN'}
             items={[
               {
                 key: "closure",

@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CaptchaCode from 'react-captcha-code';
 import * as S from './LoginForm.styles';
-import { PrimaryButton, Input } from '../../Common';
+import {PrimaryButton} from '../../Common/Button';
+import {Input} from '../../Common/Input';
 import type { LoginPayload } from '../../../types';
 
 interface LoginFormProps {

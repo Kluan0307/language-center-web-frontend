@@ -9,11 +9,11 @@ export function useRemoteResource<P extends object, T>(
   const query = JSON.stringify(params);
   const [revision, setRevision] = useState(0);
   const requestKey = `${query}:${revision}`;
-  const [result, setResult] = useState<{ key: string; data?: T; error?: string }>();
+  const [result, setResult] = useState<{ key: string; data?: T; error?: string; loadedAt?:string }>();
   useEffect(() => {
     const controller = new AbortController();
     load(JSON.parse(query) as P, controller.signal).then((data) => {
-      if (!controller.signal.aborted) setResult({ key: requestKey, data });
+      if (!controller.signal.aborted) setResult({ key: requestKey, data, loadedAt:new Date().toISOString() });
     }).catch((error: unknown) => {
       if (!controller.signal.aborted && !axios.isCancel(error)) {
         setResult({ key: requestKey, error: getErrorMessage(error) });
@@ -26,6 +26,7 @@ export function useRemoteResource<P extends object, T>(
     data: result?.key === requestKey ? result.data : undefined,
     error: result?.key === requestKey ? result.error : undefined,
     loading: result?.key !== requestKey,
+    loadedAt: result?.key === requestKey ? result.loadedAt : undefined,
     reload,
   };
 }

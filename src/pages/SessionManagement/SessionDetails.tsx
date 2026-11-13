@@ -1,16 +1,18 @@
+import {ContextLink} from '../../components/Common/ContextLink';
+import {useAuth} from '../../hooks/useAuth';
 import AuditComparison from '../../components/Common/AuditComparison';
 import type { ClassSession } from '../../types/session';
 import type { EditMode } from './SessionEditor';
 import SessionTimeCorrection from "./SessionTimeCorrection";
 import {
-  Button,
+  Alert, Button,
   Descriptions,
   Drawer,
   Space,
   Table,
   Tabs,
   Tag, } from "antd";
-import { Link } from "react-router-dom";
+
 import { useRemoteResource } from "../../hooks/useRemoteResource";
 import { sessionService } from "../../services/sessionService";
 import { LoadError } from "../../components/Common/Academic";
@@ -34,9 +36,9 @@ export default function SessionDetails({
   id,
   onClose,
   onEdit,
-  onChanged,
+  onChanged, classIds,
 }: {
-  id: number;
+  id: number;classIds?:number[];
   onClose: () => void;
   onEdit?: (session: ClassSession, mode: EditMode) => void;
   onChanged?: () => void;
@@ -44,6 +46,7 @@ export default function SessionDetails({
   const detail = useRemoteResource(sessionService.detail, { id });
   const history = useRemoteResource(sessionService.history, { id });
   const s = detail.data;
+  const {user}=useAuth();const primary=user?.role!=='TEACHER'||!!s&&!!classIds?.includes(s.classId);
   return (
     <Drawer
       open
@@ -69,11 +72,15 @@ export default function SessionDetails({
               <Tag color="cyan">Học bù cho #{s.makeupForId}</Tag>
             )}
             {s.sessionDate <= businessDate() && s.status !== "CANCELLED" && (
-              <Link to={attendanceLink(s.id)}>
+              <ContextLink to={attendanceLink(s.id)}>
                 {s.canAttend ? "Mở điểm danh" : "Xem điểm danh"}
-              </Link>
+              </ContextLink>
             )}
           </Space>
+          {s.sessionDate>businessDate()&&<Alert type="info" showIcon title="Điểm danh mở vào ngày học" style={{marginBottom:16}}/>}
+          {s.status==='CANCELLED'&&<Alert type="info" showIcon title="Buổi đã hủy không nhận điểm danh; xem buổi bù nếu đã được xếp." style={{marginBottom:16}}/>}
+          {s.classClosed&&<Alert type="info" showIcon title="Lớp đã đóng; thay đổi lịch cần quản lý xem xét lại lớp." style={{marginBottom:16}}/>}
+          {primary?<Space wrap size={16} style={{marginBottom:16}}><ContextLink to={(user?.role==='TEACHER'?'/my-classes':'/classes')+'?classId='+s.classId}>Hồ sơ lớp</ContextLink>{user?.role!=='STAFF'&&<><ContextLink to={'/exams?classId='+s.classId}>Bài kiểm tra</ContextLink><ContextLink to={'/grades?classId='+s.classId}>Bảng điểm</ContextLink></>}<ContextLink to={'/documents?classId='+s.classId}>Tài liệu lớp</ContextLink></Space>:user?.role==='TEACHER'&&<Alert type="info" showIcon title="Phân công buổi dạy không cấp quyền quản lý toàn bộ lớp." style={{marginBottom:16}}/>}
           <SessionTimeCorrection
             session={s}
             onSaved={() => {

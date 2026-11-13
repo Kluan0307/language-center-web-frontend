@@ -1,3 +1,6 @@
+import {safeReturn} from '../../utils/contextNavigation';
+import {dateOr} from '../../utils/scheduleView';
+import {useNavigate} from 'react-router-dom';
 import SheetEditor from './SheetEditor';
 import SessionAttendance from './SessionAttendance';
 import {useState} from 'react';
@@ -15,22 +18,22 @@ import {positiveId} from '../../utils/admissions';
 import {displayDate} from '../../utils/display';
 function LegacyAttendancePage(){
  const {modal}=App.useApp();const branches=useBranches();const [params,setParams]=useSearchParams();
- const classId=positiveId(params.get('classId'))??null;const rawDate=params.get('date');
- const date=rawDate&&/^\d{4}-\d{2}-\d{2}$/.test(rawDate)&&dayjs(rawDate).isValid()?rawDate:businessDate();
- const [branchId,setBranchId]=useState<number>();const classes=useRemoteResource(classService.all,{branchId});
+ const classId=positiveId(params.get('classId'))??null;const router=useNavigate();const returnTo=safeReturn(params.get('returnTo'));
+ const date=dateOr(params.get('date'),businessDate());
+ const branchId=positiveId(params.get('branchId'));const setBranchId=(branchId?:number)=>setParams(p=>{const n=new URLSearchParams(p);if(branchId)n.set('branchId',String(branchId));else n.delete('branchId');n.delete('classId');return n;});const classes=useRemoteResource(classService.all,{branchId});
  const sheet=useRemoteResource(attendanceService.sheet,{classId,date});
  const [from,setFrom]=useState<string>();const [to,setTo]=useState<string>();const rangeError=!!from&&!!to&&from>to;
  const history=useRemoteResource(attendanceService.history,{classId:rangeError?null:classId,from,to});
  const summary=useRemoteResource(attendanceService.summary,{classId});
  const [dirty,setDirty]=useState(false);const [busy,setBusy]=useState(false);const [tab,setTab]=useState('sheet');const [search,setSearch]=useState('');
  function navigate(next:()=>void){if(busy)return;if(dirty){modal.confirm({title:'Bỏ các thay đổi chưa lưu?',content:'Dữ liệu điểm danh đang sửa sẽ không được giữ.',okText:'Bỏ thay đổi',cancelText:'Tiếp tục sửa',onOk:()=>{setDirty(false);next();}});}else next();}
- function selectClass(id:number|undefined){navigate(()=>{setParams(id?{classId:String(id),date}:{});setSearch('');});}
+ function selectClass(id:number|undefined){navigate(()=>{setParams(p=>{const n=new URLSearchParams(p);if(id)n.set('classId',String(id));else n.delete('classId');n.set('date',date);return n;});setSearch('');});}
  function selectDate(next:string){navigate(()=>{setParams(p=>{const n=new URLSearchParams(p);n.set('date',next);return n;});setTab('sheet');});}
  const visibleSummary=summary.data?.filter(r=>r.studentName.toLowerCase().includes(search.toLowerCase()))??[];
- return <ManagementLayout title="Điểm danh" description="Ghi nhận theo buổi học, xem lịch sử và tổng hợp chuyên cần theo đăng ký."
-  actions={<Button disabled={busy} onClick={()=>navigate(()=>{sheet.reload();history.reload();summary.reload();})}>Tải lại</Button>}>
+ return <ManagementLayout backNavigation={false} title="Điểm danh" description="Ghi nhận theo buổi học, xem lịch sử và tổng hợp chuyên cần theo đăng ký."
+  actions={<>{returnTo&&<Button disabled={busy} onClick={()=>navigate(()=>router(returnTo))}>Quay lại</Button>}<Button disabled={busy} onClick={()=>navigate(()=>{sheet.reload();history.reload();summary.reload();})}>Tải lại</Button></>}>
   <Card><Alert showIcon type="info" title="Điểm danh theo buổi thực tế" description={<Link to="/schedule">Mở lịch học để chọn đúng buổi, gồm cả học bù và dạy thay.</Link>} style={{marginBottom:16}}/><Filters>
-   <BranchFilter branches={branches.data} loading={branches.loading} value={branchId} onChange={id=>navigate(()=>{setBranchId(id);setParams({});})}/>
+   <BranchFilter branches={branches.data} loading={branches.loading} value={branchId} onChange={id=>navigate(()=>{setBranchId(id);})}/>
    <Select className="filter" style={{minWidth:300}} aria-label="Lớp điểm danh" placeholder="Chọn lớp" allowClear showSearch optionFilterProp="label" value={classId??undefined} disabled={busy} loading={classes.loading}
     options={classes.data?.map(c=>({value:c.id,label:c.code+' · '+c.name}))} onChange={selectClass}/>
    <DatePicker aria-label="Ngày điểm danh" value={dayjs(date)} allowClear={false} disabled={busy} format="DD/MM/YYYY" needConfirm={false} disabledDate={d=>d.format('YYYY-MM-DD')>businessDate()} onChange={d=>{if(d)selectDate(d.format('YYYY-MM-DD'));}}/>

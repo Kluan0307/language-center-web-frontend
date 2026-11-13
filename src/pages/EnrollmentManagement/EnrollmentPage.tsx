@@ -1,3 +1,4 @@
+import {scopeLabel as pageScopeLabel} from '../../utils/managementScope';
 import TableActions from '../../components/Common/TableActions';
 import {
   ExceptionList,
@@ -230,7 +231,7 @@ export default function EnrollmentPage() {
   ];
   const record = detail.data;
   return (
-    <ManagementLayout
+    <ManagementLayout scopeLabel={pageScopeLabel(user,branches.data,query.branchId,false)}
       title="Đăng ký & xếp lớp"
       description="Ghi danh, theo dõi trạng thái học và giữ đúng học phí khi bảo lưu hoặc chuyển lớp."
       actions={
@@ -348,15 +349,15 @@ export default function EnrollmentPage() {
             loading={branches.loading}
             onChange={(branchId) => {
               setQuery((q) => ({ ...q, branchId, page: 0 }));
-              setParams({});
+              setParams(p=>{const n=new URLSearchParams(p);for(const k of ["classId","enrollmentId","studentId"])n.delete(k);return n;});
             }}
           />
           <Typography.Text type="secondary">
-            {list.data?.totalElements ?? 0} đăng ký
+            {list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} đăng ký
           </Typography.Text>
         </Filters>
         <LoadError error={classes.error} reload={classes.reload} />
-        <Table<EnrollmentDto>
+        {!list.error&&<Table<EnrollmentDto>
           columns={columns}
           rowKey="id"
           dataSource={list.data?.content ?? []}
@@ -380,7 +381,7 @@ export default function EnrollmentPage() {
                 size,
               })),
           }}
-        />
+        />}
       </Card>
       <Card title="Đề nghị ngoại lệ phân lớp">
         <ExceptionList studentId={studentId} classId={classId} />

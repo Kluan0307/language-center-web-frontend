@@ -1,3 +1,7 @@
+import {managementClasses} from '../../services/managementOptions';
+import {ContextLink} from '../../components/Common/ContextLink';
+import {positiveId} from '../../utils/admissions';
+import {scopeLabel} from '../../utils/managementScope';
 ﻿import { loadSchedule } from './scheduleData';
 import { readScheduleState, updateScheduleParams } from '../../utils/scheduleView';
 import { authService } from '../../services/authService';
@@ -6,7 +10,7 @@ import TableActions from '../../components/Common/TableActions';
 import { ClassTimeProgress } from "../../components/Common/Placement/DurationPanel";
 import { durationLabel, sessionMinutes } from "../../utils/duration";
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Alert, App, Button, Card, DatePicker, Select, Table, Tag, Typography, Segmented } from "antd";
 import dayjs from "dayjs";
 import {
@@ -18,7 +22,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useBranches } from "../../hooks/useBranches";
 import { useRemoteResource } from "../../hooks/useRemoteResource";
 import { sessionService } from "../../services/sessionService";
-import { classService, roomService } from "../../services/academicService";
+import { roomService } from "../../services/academicService";
 import { businessDate, branchLabel } from "../../utils/academic";
 
 import { displayDate } from "../../utils/display";
@@ -46,13 +50,14 @@ export default function SessionManagement() {
   const [defaultView] = useState<'week' | 'day'>(() => window.matchMedia('(max-width: 767px)').matches ? 'day' : 'week');
   const today = businessDate();
   const state = readScheduleState(params, today, defaultView);
-  const { query, roomId, date, calendarView, display: displayMode } = state;
+  const { query:rawQuery, roomId, date, calendarView, display: displayMode } = state;
+  const query={...rawQuery,allAssigned:user?.role==='ADMIN'&&rawQuery.allAssigned?true:undefined};
   const classId = query.classId;
   const manager = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const teacher = user?.role === 'TEACHER';
   const valid = !query.from || !query.to || query.from <= query.to;
   const [timeRevision, setTimeRevision] = useState(0);
-  const updateParams = (patch: Record<string, string | number | undefined>) =>
+  const updateParams = (patch: Record<string, string | number | boolean | undefined>) =>
     setParams(previous => updateScheduleParams(previous, { calendarView, date, display: displayMode, ...patch }));
   const setDisplayMode = (display: string) => updateParams({ display });
   const setQuery = (change: (previous: SessionQuery) => SessionQuery) => {
@@ -62,8 +67,8 @@ export default function SessionManagement() {
   const list = useRemoteResource(loadSchedule, { display: displayMode, date, calendarView, query, roomId, revision: timeRevision });
   const teachers = useRemoteResource(loadFilterTeachers, { branchId: query.branchId, enabled: !teacher });
   const rooms = useRemoteResource(loadFilterRooms, { branchId: query.branchId, enabled: !teacher });
-  const classes = useRemoteResource(classService.all, {
-    branchId: query.branchId,
+  const classes = useRemoteResource(managementClasses, {
+    branchId: query.branchId,allAssigned:query.allAssigned,branchIds:user?.branchIds,
   });
   const branches = useBranches();
   const [editing, setEditing] = useState<{
@@ -71,7 +76,8 @@ export default function SessionManagement() {
     mode: EditMode;
   } | null>(null);
   const [generate, setGenerate] = useState(false);
-  const [detail, setDetail] = useState<number | null>(null);
+  const detail=positiveId(params.get('sessionId'))??null;
+  const setDetail=(id:number|null)=>updateParams({sessionId:id??undefined});
   const [busy, setBusy] = useState<number | null>(null);
   const classOptions = new Map(
     classes.data?.map((c) => [
@@ -109,7 +115,7 @@ export default function SessionManagement() {
   return (
     <ManagementLayout
       title={teacher ? "Lịch dạy của tôi" : "Lịch học"}
-      description="Ngày, giờ, phòng và giáo viên thực tế của từng buổi; bao gồm học bù và dạy thay."
+      description="Ngày, giờ, phòng và giáo viên thực tế của từng buổi; bao gồm học bù và dạy thay." scopeLabel={scopeLabel(user,branches.data,query.branchId,query.allAssigned)}
       actions={
         <>
           <Button
@@ -124,14 +130,14 @@ export default function SessionManagement() {
           </Button>
           {manager && (
             <>
-              <Link
+              <ContextLink
                 to={
                   "/schedule?view=weekly" +
                   (classId ? "&classId=" + classId : "")
                 }
               >
                 <Button>Lịch mẫu tuần</Button>
-              </Link>
+              </ContextLink>
               <Button
                 type="primary"
                 onClick={() => setGenerate(true)}
@@ -144,6 +150,7 @@ export default function SessionManagement() {
         </>
       }
     >
+      
       
       {classId && (!teacher || classes.data?.some((c) => c.id === classId)) && (
         <Card>
@@ -161,7 +168,7 @@ export default function SessionManagement() {
             branches={branches.data}
             value={query.branchId}
             onChange={(branchId) => {
-              updateParams({ branchId, classId: undefined, teacherId: undefined, roomId: undefined, page: 0 });
+              updateParams({ branchId,allAssigned:undefined, classId: undefined, teacherId: undefined, roomId: undefined, page: 0 });
             }}
           />
           <Select
@@ -221,7 +228,7 @@ export default function SessionManagement() {
             onChange={(status) => setQuery((q) => ({ ...q, status, page: 0 }))}
           />
           {displayMode === 'list' && (<Typography.Text type="secondary">
-            {list.data?.totalElements ?? 0} buổi
+            {list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} buổi
           </Typography.Text>)}
         </Filters>
         {displayMode === 'list' && !valid && (
@@ -229,7 +236,7 @@ export default function SessionManagement() {
         )}
         {displayMode === 'calendar' ? <SessionCalendar sessions={list.data?.content ?? []} loading={list.loading} error={list.error}
           date={date} view={calendarView} onDateChange={date => updateParams({ date })}
-          onViewChange={calendarView => updateParams({ calendarView })} onSelect={setDetail} /> : (<Table<ClassSession>
+          onViewChange={calendarView => updateParams({ calendarView })} onSelect={setDetail} /> : ((!list.error&&<Table<ClassSession>
           rowKey="id"
           loading={list.loading}
           dataSource={valid ? (list.data?.content ?? []) : []}
@@ -353,7 +360,7 @@ export default function SessionManagement() {
 ]}><Button size="small" onClick={() => setDetail(s.id)}>
                     Xem
                   </Button>
-    {s.sessionDate <= today && s.status !== "CANCELLED" && (<Link to={attendanceLink(s.id)}>
+    {s.sessionDate <= today && s.status !== "CANCELLED" && (<ContextLink to={attendanceLink(s.id)}>
                       <Button size="small">
                         {s.canAttend
             ? s.status === "COMPLETED"
@@ -361,7 +368,7 @@ export default function SessionManagement() {
                 : "Điểm danh"
             : "Xem điểm danh"}
                       </Button>
-                    </Link>)}</TableActions>
+                    </ContextLink>)}</TableActions>
               ),
             },
           ]}
@@ -377,7 +384,7 @@ export default function SessionManagement() {
                 size,
               })),
           }}
-        />)}
+        />))}
       </Card>
       {editing && (
         <SessionEditor
@@ -406,7 +413,7 @@ export default function SessionManagement() {
           }}
         />
       )}
-      {detail && <SessionDetails id={detail} onClose={() => setDetail(null)}
+      {detail && <SessionDetails id={detail} classIds={classes.data?.map(c=>c.id)} onClose={() => setDetail(null)}
         onChanged={() => { list.reload(); setTimeRevision(v => v + 1); }}
         onEdit={manager ? (session, mode) => { setDetail(null); void edit(session, mode); } : undefined} />}
     </ManagementLayout>

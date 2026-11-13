@@ -1,7 +1,10 @@
+import {scopeLabel as pageScopeLabel} from '../../utils/managementScope';
+import {ContextLink} from '../../components/Common/ContextLink';
+import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
 import EvaluationWorkspace from "../../components/Common/Evaluation/EvaluationWorkspace";
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Alert, App, Button, Card, Select, Table, Typography } from "antd";
 import {
   ManagementLayout,
@@ -30,7 +33,7 @@ export default function ExamManagement() {
   const branches = useBranches();
   const [params, setParams] = useSearchParams();
   const classId = positiveId(params.get("classId"));
-  const [query, setQuery] = useState<ExamQuery>({ page: 0, size: 10 });
+  const [query, setQuery] = useListQuery<ExamQuery>([]);
   const classes = useRemoteResource(classService.all, {
     branchId: query.branchId,
   });
@@ -54,7 +57,7 @@ export default function ExamManagement() {
     }
   }
   return (
-    <ManagementLayout
+    <ManagementLayout scopeLabel={pageScopeLabel(user,branches.data,query.branchId,false)}
       title="Bài kiểm tra"
       description="Quản lý bài kiểm tra theo lớp, ngày kiểm tra, thang điểm và trọng số."
       actions={
@@ -83,7 +86,7 @@ export default function ExamManagement() {
             value={query.branchId}
             onChange={(branchId) => {
               setQuery((q) => ({ ...q, branchId, page: 0 }));
-              setParams({});
+              setParams(p=>{const n=new URLSearchParams(p);for(const k of ["classId"])n.delete(k);return n;});
             }}
           />
           <Select
@@ -109,7 +112,7 @@ export default function ExamManagement() {
             }}
           />
           <Typography.Text type="secondary">
-            {list.data?.totalElements ?? 0} bài kiểm tra
+            {list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} bài kiểm tra
           </Typography.Text>
         </Filters>
         <LoadError error={classes.error} reload={classes.reload} />
@@ -120,7 +123,7 @@ export default function ExamManagement() {
             title="Chọn lớp của bạn để xem bài kiểm tra"
           />
         ) : (
-          <Table<ExamDto>
+          (!list.error&&<Table<ExamDto>
             rowKey="id"
             loading={list.loading}
             dataSource={list.data?.content ?? []}
@@ -160,11 +163,11 @@ export default function ExamManagement() {
             }, onOk: () => remove(e)
         }
     }
-]}><Link to={"/grades?classId=" + e.classId + "&examId=" + e.id}>
+]}><ContextLink to={"/grades?classId=" + e.classId + "&examId=" + e.id}>
                       <Button size="small" type="primary">
                         Bảng điểm
                       </Button>
-                    </Link></TableActions>
+                    </ContextLink></TableActions>
                 ),
               },
             ]}
@@ -180,7 +183,7 @@ export default function ExamManagement() {
                   size,
                 })),
             }}
-          />
+          />)
         )}
       </Card>
       {classId && (

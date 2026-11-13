@@ -1,7 +1,9 @@
+import {scopeLabel as pageScopeLabel} from '../../utils/managementScope';
+import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
 import { CourseDurationPanel } from "../../components/Common/Placement/DurationPanel";
 import { durationLabel } from "../../utils/duration";
-import { useState } from "react";
+import {useEffect,useState} from "react";
 import { App, Alert, Button, Card, Col, Descriptions, Drawer, Form, Input, InputNumber, Modal, Row, Select, Table, Tag, Typography } from "antd";
 import type { TableColumnsType } from "antd";
 import { Eye, Pencil, Plus, RefreshCw } from "lucide-react";
@@ -37,9 +39,10 @@ export default function CourseManagement() {
   const { user } = useAuth();
   const { message } = App.useApp();
   const branches = useBranches();
-  const [query, setQuery] = useState<CourseQuery>({ page: 0, size: 10 });
+  const [query, setQuery] = useListQuery<CourseQuery>(['OPEN','CLOSED']);
   const list = useRemoteResource(courseService.list, query);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(query.keyword??'');
+ useEffect(()=>setSearch(query.keyword??''),[query.keyword]);
   const [form] = Form.useForm<CourseRequest>();
   const [editing, setEditing] = useState<CourseDto | null>(null);
   const [detail, setDetail] = useState<CourseDto | null>(null);
@@ -206,7 +209,7 @@ export default function CourseManagement() {
             key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => openForm(c)
         },
         {
-            key: "action-2", label: c.status === "OPEN" ? "Đóng" : "Mở", loading: busyId === c.id, disabled: (busyId !== null) || (busyId !== null), confirm: {
+            key: "action-2", label: c.status === "OPEN" ? "Đóng" : "Mở", loading: busyId === c.id, disabled: busyId !== null, confirm: {
                 title: c.status === "OPEN" ? "Đóng khóa học?" : "Mở khóa học?", okText: "Xác nhận", cancelText: "Hủy", content: "Lịch sử lớp và học phí đã chốt vẫn được giữ.", okButtonProps: {
                     danger: false
                 }, onOk: () => toggle(c)
@@ -220,7 +223,7 @@ export default function CourseManagement() {
     },
   ];
   return (
-    <ManagementLayout
+    <ManagementLayout scopeLabel={pageScopeLabel(user,branches.data,query.branchId,false)}
       title="Khóa học"
       description="Quản lý nội dung đào tạo, học phí và giới hạn sĩ số."
       actions={
@@ -297,10 +300,10 @@ export default function CourseManagement() {
             }
           />
           <Typography.Text type="secondary">
-            {list.data?.totalElements ?? 0} khóa học
+            {list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} khóa học
           </Typography.Text>
         </Filters>
-        <Table<CourseDto>
+        {!list.error&&<Table<CourseDto>
           rowKey="id"
           columns={columns}
           dataSource={list.data?.content ?? []}
@@ -324,7 +327,7 @@ export default function CourseManagement() {
                 size,
               })),
           }}
-        />
+        />}
       </Card>
       <Modal
         open={open}

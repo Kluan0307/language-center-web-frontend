@@ -1,3 +1,5 @@
+import {useListQuery} from '../../hooks/useListQuery';
+import {scopeLabel as pageScopeLabel} from '../../utils/managementScope';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Alert, App, Button, Card, Form, Modal, Popconfirm, Select, Space, Table, TimePicker, Typography } from 'antd';
@@ -96,7 +98,7 @@ export default function ScheduleManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const parsed = Number(searchParams.get('classId'));
   const classId = Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
-  const [query, setQuery] = useState<ScheduleQuery>({ page: 0, size: 10 });
+  const [query, setQuery] = useListQuery<ScheduleQuery>([]);
   const list = useRemoteResource(scheduleService.list, { ...query, classId });
   const classes = useRemoteResource(classService.all, { branchId: query.branchId });
   const branches = useBranches();
@@ -128,7 +130,7 @@ export default function ScheduleManagement() {
       </Popconfirm>
     </Space> }] : []),
   ];
-  return <ManagementLayout title={teacher ? 'Lịch dạy của tôi' : 'Lịch học'}
+  return <ManagementLayout scopeLabel={pageScopeLabel(user,branches.data,query.branchId,false)} title={teacher ? 'Lịch dạy của tôi' : 'Lịch học'}
     description="Mẫu sinh lịch. Thay đổi chỉ đồng bộ các buổi tương lai chưa điều chỉnh/điểm danh; hôm nay và lịch sử được giữ nguyên."
     actions={<><Link to={'/schedule'+(classId?'?classId='+classId:'')}><Button>Buổi học thực tế</Button></Link><Button icon={<RefreshCw size={16} />} loading={list.loading} onClick={() => { list.reload(); classes.reload(); }}>Tải lại</Button>
       {manager && <Button type="primary" icon={<Plus size={16} />} disabled={classes.loading || !!classes.error || !classes.data?.some((c) => c.status !== 'FINISHED')}
@@ -149,12 +151,12 @@ export default function ScheduleManagement() {
           allowClear options={teachers} value={query.teacherId} onChange={(teacherId) => setQuery((q) => ({ ...q, teacherId, page: 0 }))} />}
         <Select className="filter" aria-label="Lọc phòng" placeholder="Tất cả phòng" allowClear showSearch optionFilterProp="label"
           options={rooms} value={query.roomId} onChange={(roomId) => setQuery((q) => ({ ...q, roomId, page: 0 }))} />
-        <Typography.Text type="secondary">{list.data?.totalElements ?? 0} buổi/tuần</Typography.Text>
+        <Typography.Text type="secondary">{list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} buổi/tuần</Typography.Text>
       </Filters>
-      <Table<ScheduleDto> columns={columns} dataSource={list.data?.content ?? []} rowKey="id" loading={list.loading} scroll={{ x: 1100 }}
+      {!list.error&&<Table<ScheduleDto> columns={columns} dataSource={list.data?.content ?? []} rowKey="id" loading={list.loading} scroll={{ x: 1100 }}
         locale={{ emptyText: list.error ? 'Chưa tải được dữ liệu' : 'Không có lịch phù hợp' }}
         pagination={{ current: query.page + 1, pageSize: query.size, total: list.data?.totalElements ?? 0, showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50], onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />
+          pageSizeOptions: [10, 20, 50], onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />}
     </Card>
     {formState && manager && <ScheduleForm editing={formState.editing} defaultClassId={classId} classes={classes.data ?? []}
       onClose={() => setFormState(null)} onSaved={() => { setFormState(null); list.reload(); message.success('Đã lưu lịch học.'); }} />}

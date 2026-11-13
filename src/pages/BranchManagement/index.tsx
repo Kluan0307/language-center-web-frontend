@@ -1,5 +1,6 @@
+import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
-import { useState } from 'react';
+import {useEffect,useState} from 'react';
 import { App, Alert, Button, Card, Descriptions, Drawer, Form, Input, Modal, Space, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { Building2, Eye, Pencil, Plus, RefreshCw } from 'lucide-react';
@@ -15,7 +16,7 @@ export default function BranchManagement() {
   const { user } = useAuth();
   const { message } = App.useApp();
   const canEdit = user?.role === 'SUPER_ADMIN';
-  const [query, setQuery] = useState({ page: 0, size: 10, keyword: '' });
+  const [query, setQuery] = useListQuery<{page:number;size:number;keyword?:string}>([]);
   const resource = useRemoteResource(branchService.list, query);
   const [form] = Form.useForm<BranchRequest>();
   const [editing, setEditing] = useState<Branch | null>(null);
@@ -24,7 +25,8 @@ export default function BranchManagement() {
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [formError, setFormError] = useState<string>();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(query.keyword??'');
+ useEffect(()=>setSearch(query.keyword??''),[query.keyword]);
 
   function openForm(branch: Branch | null) {
     setEditing(branch);
@@ -79,7 +81,7 @@ export default function BranchManagement() {
             key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => openForm(b)
         },
         {
-            key: "action-2", label: b.status === 'ACTIVE' ? 'Ngừng' : 'Bật lại', loading: busyId === b.id, danger: b.status === 'ACTIVE', disabled: (busyId !== null) || (busyId !== null), confirm: {
+            key: "action-2", label: b.status === 'ACTIVE' ? 'Ngừng' : 'Bật lại', loading: busyId === b.id, danger: b.status === 'ACTIVE', disabled: busyId !== null, confirm: {
                 title: b.status === 'ACTIVE' ? 'Ngừng hoạt động chi nhánh?' : 'Bật hoạt động chi nhánh?', okText: "Xác nhận", cancelText: "Hủy", content: "Dữ liệu và lịch sử được giữ lại.", okButtonProps: {
                     danger: b.status === 'ACTIVE'
                 }, onOk: () => toggle(b)
@@ -100,13 +102,13 @@ export default function BranchManagement() {
         <Input.Search className="search" placeholder="Tìm theo mã hoặc tên chi nhánh" allowClear enterButton
           value={search} onChange={(e) => { setSearch(e.target.value); if (!e.target.value) setQuery((q) => ({ ...q, keyword: '', page: 0 })); }}
           onSearch={(keyword) => setQuery((q) => ({ ...q, keyword: keyword.trim(), page: 0 }))} />
-        <Typography.Text type="secondary">{resource.data?.totalElements ?? 0} chi nhánh</Typography.Text>
+        <Typography.Text type="secondary">{resource.loading?'Đang tải…':resource.error?'—':resource.data?.totalElements??'—'} chi nhánh</Typography.Text>
       </Filters>
-      <Table<Branch> rowKey="id" columns={columns} dataSource={resource.data?.content ?? []}
+      {!resource.error&&<Table<Branch> rowKey="id" columns={columns} dataSource={resource.data?.content ?? []}
         loading={resource.loading} scroll={{ x: 900 }} locale={{ emptyText: resource.error ? 'Chưa tải được dữ liệu' : 'Không có chi nhánh phù hợp' }}
         pagination={{ current: query.page + 1, pageSize: query.size, total: resource.data?.totalElements ?? 0,
           showSizeChanger: true, pageSizeOptions: [10, 20, 50],
-          onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />
+          onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />}
     </Card>
     <Modal title={editing ? 'Chỉnh sửa chi nhánh' : 'Thêm chi nhánh'} open={open} forceRender
       onCancel={() => { if (!saving) setOpen(false); }} onOk={() => form.submit()}

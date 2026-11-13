@@ -20,7 +20,7 @@ export default function SheetEditor({sheet,onSaved,onDirty,onBusy}:{sheet:Attend
   <Space wrap style={{marginBottom:16}}><Button disabled={busy||!sheet.canEdit||!rows.length} onClick={()=>{setRows(prev=>prev.map(r=>({...r,status:'PRESENT',hasPermission:false})));setDirty(true);onDirty(true);}}>Tất cả có mặt</Button>
    <Button type="primary" loading={busy} disabled={!sheet.canEdit||!rows.length} onClick={()=>void save()}>Lưu điểm danh</Button>{dirty&&<Tag color="orange">Có thay đổi chưa lưu</Tag>}</Space>
   <Table<AttendanceRow> rowKey="enrollmentId" dataSource={rows} pagination={false} scroll={{x:950}} locale={{emptyText:'Không có học viên có hiệu lực tại ngày này'}} columns={[
-   {title:'Học viên',dataIndex:'studentName'},{title:'Trình độ',dataIndex:'currentLevel',render:v=>v||'—'},
+   {title:'Học viên',dataIndex:'studentName',fixed:'left',width:220},{title:'Trình độ',dataIndex:'currentLevel',render:v=>v||'—'},
    {title:'Trạng thái',key:'status',width:180,render:(_,r)=><Select aria-label={'Điểm danh '+r.studentName} style={{width:160}} value={r.status} disabled={busy||!sheet.canEdit||!rows.length} options={Object.entries(ATTENDANCE_LABELS).map(([value,label])=>({value,label}))} onChange={s=>change(r.enrollmentId,s)}/>},
    {title:'Có phép',key:'permission',render:(_,r)=><Checkbox checked={r.hasPermission} disabled={busy||!sheet.canEdit||r.status!=='ABSENT'} onChange={e=>change(r.enrollmentId,r.status,e.target.checked)}/>},
    {title:'Đã lưu',dataIndex:'saved',render:v=><Tag color={v?'green':'default'}>{v?'Đã lưu':'Chưa lưu'}</Tag>},

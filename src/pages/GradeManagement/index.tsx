@@ -1,8 +1,9 @@
+import {ContextLink} from '../../components/Common/ContextLink';
 import StudentPublicationPanel from "./StudentPublicationPanel";
 import FinalResultPanel from "../../components/Common/Evaluation/FinalResultPanel";
 import EvaluationWorkspace from "../../components/Common/Evaluation/EvaluationWorkspace";
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   Alert,
   App,
@@ -239,9 +240,9 @@ export default function GradeManagement() {
                             <Tag>
                               Trọng số gợi ý của bài: {selected.data!.weight}
                             </Tag>
-                            <Link to={"/exams?classId=" + classId}>
+                            <ContextLink to={"/exams?classId=" + classId}>
                               Quản lý bài kiểm tra
-                            </Link>
+                            </ContextLink>
                           </Space>
                           <Input.Search
                             placeholder="Tìm học viên trong lớp"
@@ -256,7 +257,7 @@ export default function GradeManagement() {
                             dataSource={rows}
                             scroll={{ x: 1100 }}
                             columns={[
-                              { title: "Học viên", dataIndex: "studentName" },
+                              { title: "Học viên",fixed:"left",width:220, dataIndex: "studentName" },
                               {
                                 title: "Danh sách dự thi",
                                 dataIndex: "active",

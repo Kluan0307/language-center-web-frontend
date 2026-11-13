@@ -1,5 +1,6 @@
+import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
-import { useState } from 'react';
+import {useEffect,useState} from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { App, Button, Card, Checkbox, Descriptions, Drawer, Input, Select, Space, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
@@ -27,10 +28,12 @@ export default function LeadsPage() {
   const branches = useBranches();
   const [params, setParams] = useSearchParams();
   const selectedId = positiveId(params.get('leadId')) ?? null;
-  const [query, setQuery] = useState<LeadQuery>({ page: 0, size: 10 });
+  const [rawQuery, setQuery] = useListQuery<LeadQuery>(Object.keys(LEAD_LABELS));
+  const query={...rawQuery,allAssigned:user?.role==='ADMIN'&&rawQuery.allAssigned?true:undefined,branchId:user?.role==='ADMIN'&&rawQuery.allAssigned?undefined:rawQuery.branchId};
   const list = useRemoteResource(leadService.list, query);
   const detail = useRemoteResource(leadService.detail, { id: selectedId });
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(query.keyword??'');
+ useEffect(()=>setSearch(query.keyword??''),[query.keyword]);
   const [formState, setFormState] = useState<{ editing: LeadDto | null } | null>(null);
   const [assignment,setAssignment]=useState<LeadDto|null>(null);
   const manager=user?.role==='SUPER_ADMIN'||user?.role==='ADMIN';
@@ -39,7 +42,7 @@ export default function LeadsPage() {
   const [convert, setConvert] = useState<LeadDto | null>(null);
   function saved(lead: LeadDto, converted = false) {
     setFormState(null); setCare(null);setAssignment(null); setConvert(null);
-    list.reload(); detail.reload(); setParams({ leadId: String(lead.id) });
+    list.reload(); detail.reload(); setParams(p=>{const n=new URLSearchParams(p);n.set('leadId',String(lead.id));return n;});
     message.success(converted ? 'Đã chuyển thành học viên. Hãy bổ sung hồ sơ và ghi danh lớp.' : 'Đã lưu thông tin Lead.');
   }
   const actions = (lead: LeadDto) => <TableActions items={[
@@ -65,12 +68,10 @@ export default function LeadsPage() {
             key: "action-5", label: "Hồ sơ học viên", to: `/students?studentId=${lead.convertedStudent.id}`
         }
     ]) : [])
-]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setParams({
-    leadId: String(lead.id)
-})}>Xem</Button></TableActions>;
+]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setParams(p=>{const n=new URLSearchParams(p);n.set('leadId',String(lead.id));return n;})}>Xem</Button></TableActions>;
   const columns: TableColumnsType<LeadDto> = [
     { title: 'Khách hàng', key: 'name', width: 230, render: (_, lead) => <div>
-      <Button type="link" style={{ padding: 0 }} onClick={() => setParams({ leadId: String(lead.id) })}>{lead.fullName}</Button>
+      <Button type="link" style={{ padding: 0 }} onClick={() => setParams(p=>{const n=new URLSearchParams(p);n.set('leadId',String(lead.id));return n;})}>{lead.fullName}</Button>
       <div><Typography.Text type="secondary">{lead.phone}</Typography.Text></div></div> },
     { title: 'Khóa quan tâm', dataIndex: 'interestedCourseName', render: (v) => v || '—' },
     { title: 'Nguồn', dataIndex: 'source', render: (v) => v || '—' },
@@ -98,14 +99,14 @@ export default function LeadsPage() {
         <Select aria-label="Lọc lịch chăm sóc" allowClear placeholder="Tất cả lịch hẹn" value={query.followUp} onChange={followUp=>setQuery(q=>({...q,followUp,page:0}))} options={[{value:'OVERDUE',label:'Quá hẹn'},{value:'TODAY',label:'Hẹn hôm nay'},{value:'UPCOMING',label:'Sắp tới'},{value:'UNSCHEDULED',label:'Chưa có lịch hẹn'}]}/>
         <Checkbox checked={!!user && query.assignedTo === user.accountId}
           onChange={(e) => setQuery((q) => ({ ...q, assignedTo: e.target.checked ? user?.accountId : undefined, page: 0 }))}>Lead của tôi</Checkbox>
-        <Typography.Text type="secondary">{list.data?.totalElements ?? 0} Lead</Typography.Text>
+        <Typography.Text type="secondary">{list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} Lead</Typography.Text>
       </Filters>
-      <Table<LeadDto> columns={columns} rowKey="id" dataSource={list.data?.content ?? []} loading={list.loading} scroll={{ x: 1350 }}
+      {!list.error&&<Table<LeadDto> columns={columns} rowKey="id" dataSource={list.data?.content ?? []} loading={list.loading} scroll={{ x: 1350 }}
         locale={{ emptyText: list.error ? 'Chưa tải được dữ liệu' : 'Không có Lead phù hợp' }}
         pagination={{ current: query.page + 1, pageSize: query.size, total: list.data?.totalElements ?? 0, showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50], onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />
+          pageSizeOptions: [10, 20, 50], onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />}
     </Card>
-    <Drawer open={selectedId !== null} onClose={() => setParams({})} title="Thông tin Lead" size={680} loading={detail.loading}>
+    <Drawer open={selectedId !== null} onClose={() => setParams(p=>{const n=new URLSearchParams(p);n.delete('leadId');return n;})} title="Thông tin Lead" size={680} loading={detail.loading}>
       <LoadError error={detail.error} reload={detail.reload} />
       {detail.data && <>
         <Space wrap style={{ marginBottom: 20 }}>{actions(detail.data)}</Space>

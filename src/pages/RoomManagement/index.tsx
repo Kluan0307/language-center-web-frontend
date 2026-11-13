@@ -1,5 +1,7 @@
+import {scopeLabel as pageScopeLabel} from '../../utils/managementScope';
+import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
-import { useState } from 'react';
+import {useEffect,useState} from 'react';
 import { App, Alert, Button, Card, Col, Descriptions, Drawer, Form, Input, InputNumber, Modal, Row, Select, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { Eye, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
@@ -17,9 +19,10 @@ export default function RoomManagement() {
   const { user } = useAuth();
   const { message } = App.useApp();
   const branches = useBranches();
-  const [query, setQuery] = useState<RoomQuery>({ page: 0, size: 10 });
+  const [query, setQuery] = useListQuery<RoomQuery>(['AVAILABLE','MAINTENANCE']);
   const list = useRemoteResource(roomService.list, query);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(query.keyword??'');
+ useEffect(()=>setSearch(query.keyword??''),[query.keyword]);
   const [form] = Form.useForm<RoomRequest>();
   const [editing, setEditing] = useState<RoomDto | null>(null);
   const [detail, setDetail] = useState<RoomDto | null>(null);
@@ -70,14 +73,14 @@ export default function RoomManagement() {
         key: "action-1", label: "Sửa", icon: <Pencil size={14}/>, onClick: () => openForm(r)
     },
     {
-        key: "action-2", label: r.status === 'AVAILABLE' ? 'Bảo trì' : 'Sử dụng', loading: busyId === r.id, disabled: (busyId !== null) || (busyId !== null), confirm: {
+        key: "action-2", label: r.status === 'AVAILABLE' ? 'Bảo trì' : 'Sử dụng', loading: busyId === r.id, disabled: busyId !== null, confirm: {
             title: r.status === 'AVAILABLE' ? 'Đưa phòng vào bảo trì?' : 'Đưa phòng vào sử dụng?', okText: "Xác nhận", cancelText: "Hủy", content: undefined, okButtonProps: {
                 danger: false
             }, onOk: () => mutate(r, 'status')
         }
     },
     {
-        key: "action-3", label: "Xóa", icon: <Trash2 size={14}/>, danger: true, disabled: (busyId !== null) || (busyId !== null), confirm: {
+        key: "action-3", label: "Xóa", icon: <Trash2 size={14}/>, danger: true, disabled: busyId !== null, confirm: {
             title: "Xóa phòng học?", okText: "Xóa", cancelText: "Hủy", content: "Chỉ xóa được phòng chưa được gán cho lớp nào.", okButtonProps: {
                 danger: true
             }, onOk: () => mutate(r, 'delete')
@@ -85,7 +88,7 @@ export default function RoomManagement() {
     }
 ]}><Button size="small" icon={<Eye size={14}/>} onClick={() => setDetail(r)}>Xem</Button></TableActions> },
   ];
-  return <ManagementLayout title="Phòng học" description="Quản lý sức chứa, vị trí, thiết bị và trạng thái phòng."
+  return <ManagementLayout scopeLabel={pageScopeLabel(user,branches.data,query.branchId,false)} title="Phòng học" description="Quản lý sức chứa, vị trí, thiết bị và trạng thái phòng."
     actions={<><Button icon={<RefreshCw size={16} />} onClick={list.reload} loading={list.loading}>Tải lại</Button>
       <Button type="primary" icon={<Plus size={16} />} onClick={() => openForm(null)}>Thêm phòng học</Button></>}>
     <LoadError error={list.error} reload={list.reload} />
@@ -99,12 +102,12 @@ export default function RoomManagement() {
           onChange={(status) => setQuery((q) => ({ ...q, status, page: 0 }))} />
         <BranchFilter branches={branches.data} value={query.branchId} loading={branches.loading}
           onChange={(branchId) => setQuery((q) => ({ ...q, branchId, page: 0 }))} />
-        <Typography.Text type="secondary">{list.data?.totalElements ?? 0} phòng</Typography.Text>
+        <Typography.Text type="secondary">{list.loading?'Đang tải…':list.error?'—':list.data?.totalElements??'—'} phòng</Typography.Text>
       </Filters>
-      <Table<RoomDto> columns={columns} rowKey="id" dataSource={list.data?.content ?? []} loading={list.loading} scroll={{ x: 1050 }}
+      {!list.error&&<Table<RoomDto> columns={columns} rowKey="id" dataSource={list.data?.content ?? []} loading={list.loading} scroll={{ x: 1050 }}
         locale={{ emptyText: list.error ? 'Chưa tải được dữ liệu' : 'Không có phòng phù hợp' }}
         pagination={{ current: query.page + 1, pageSize: query.size, total: list.data?.totalElements ?? 0, showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50], onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />
+          pageSizeOptions: [10, 20, 50], onChange: (page, size) => setQuery((q) => ({ ...q, page: size !== q.size ? 0 : page - 1, size })) }} />}
     </Card>
     <Modal open={open} title={editing ? 'Chỉnh sửa phòng học' : 'Thêm phòng học'} forceRender width={650}
       okText="Lưu phòng học" cancelText="Hủy" onOk={() => form.submit()} onCancel={() => { if (!busy) setOpen(false); }}

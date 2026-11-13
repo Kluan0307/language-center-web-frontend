@@ -43,6 +43,6 @@ export interface BillingSnapshot {
   classId: number; className: string; courseId: number; courseName: string; tuitionFee: number; dueDate: string;
 }
 export interface TuitionDelivery { enrollmentId: number; status: DeliveryState; error: string | null }
-export interface LeadQuery extends PageQuery { branchId?: number; status?: LeadState; assignedTo?: number;followUp?:'OVERDUE'|'TODAY'|'UPCOMING'|'UNSCHEDULED' }
+export interface LeadQuery extends PageQuery {allAssigned?:boolean; branchId?: number; status?: LeadState; assignedTo?: number;followUp?:'OVERDUE'|'TODAY'|'UPCOMING'|'UNSCHEDULED' }
 export interface StudentQuery extends PageQuery { branchId?: number; status?: StudentState; level?: string }
 export interface EnrollmentQuery extends PageQuery { branchId?: number; studyStatus?: StudyState; classId?: number; studentId?: number }

@@ -83,6 +83,10 @@ export default function SessionCalendar({ sessions, loading, error, date, view, 
       <Segmented aria-label="Chế độ lịch" value={view} options={[{ label: 'Tuần', value: 'week' }, { label: 'Ngày', value: 'day' }]}
         onChange={onViewChange} />
     </Toolbar>
+    <Space wrap style={{ marginBottom: 12 }}>
+      <Tag color="blue">Đã xếp lịch</Tag><Tag color="green">Đã hoàn tất</Tag><Tag>Đã hủy</Tag><Tag color="cyan">Học bù</Tag><Tag color="orange">Dạy thay</Tag><Typography.Text type="secondary">Giờ Việt Nam (UTC+7)</Typography.Text>
+      <Typography.Text type="secondary">{loading ? 'Đang tải…' : error ? 'Chưa tải được lịch' : `${sessions.length} buổi`}</Typography.Text>
+    </Space>
     <Spin spinning={loading}>
       <CalendarFrame>
         <FullCalendar ref={calendar} plugins={[timeGridPlugin, luxonPlugin]} locale={viLocale}
@@ -96,11 +100,12 @@ export default function SessionCalendar({ sessions, loading, error, date, view, 
           eventTimeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           dayHeaderFormat={{ weekday: 'short', day: '2-digit', month: '2-digit' }}
           events={error ? [] : events} eventClick={info => onSelect(Number(info.event.id))}
+          eventDidMount={info=>{info.el.tabIndex=0;info.el.setAttribute('role','button');info.el.setAttribute('aria-label','Mở buổi '+info.event.title+' '+info.event.startStr);info.el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(Number(info.event.id));}};}}
           eventContent={info => {
             const s = info.event.extendedProps.session as import('../../types/session').ClassSession;
             return <div title={[info.timeText, s.className, s.roomName, s.teacherName, SESSION_LABELS[s.status]].filter(Boolean).join(' · ')}>
               <DetailLine>{info.timeText || 'Chưa xác định giờ'}</DetailLine>
-              <strong className="session-title">{s.className}</strong>
+              <strong className="session-title">{s.kind==='MAKEUP'?'Bù · ':isSubstitute(s)?'Dạy thay · ':''}{s.className}</strong>
               <DetailLine>{s.roomName || 'Chưa có phòng'}</DetailLine>
               <DetailLine>{s.teacherName || 'Chưa phân công'}</DetailLine>
               {s.kind === 'MAKEUP' && <DetailLine>Học bù</DetailLine>}
@@ -111,9 +116,6 @@ export default function SessionCalendar({ sessions, loading, error, date, view, 
       </CalendarFrame>
       {!loading && !error && sessions.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Không có buổi học trong khoảng này" />}
     </Spin>
-    <Space wrap style={{ marginTop: 12 }}>
-      <Tag color="blue">Đã xếp lịch</Tag><Tag color="green">Đã hoàn tất</Tag><Tag>Đã hủy</Tag>
-      <Typography.Text type="secondary">{loading ? 'Đang tải…' : error ? 'Chưa tải được lịch' : `${sessions.length} buổi`}</Typography.Text>
-    </Space>
+
   </>;
 }
