@@ -1,7 +1,7 @@
 export type AssistantScopeMode = 'ACTIVE_BRANCH' | 'ALL_ASSIGNED' | 'WHOLE_SYSTEM';
 export interface AssistantScope { mode: AssistantScopeMode; branchIds: number[]; label: string }
 export interface AssistantConfig { enabled: boolean; readOnly: boolean; role: string; maxMessageLength: number; conversationTtlMinutes: number }
-export interface AssistantChoice { type: 'STUDENT' | 'CLASS' | 'SESSION'; id: number; code: string; label: string; branchId: number | null }
+export interface AssistantChoice { type: 'STUDENT' | 'CLASS' | 'SESSION' | 'PERSONNEL' | 'EXAM' | 'ACCOUNT'; id: number; code: string; label: string; branchId: number | null }
 export interface AssistantRequest { message: string; requestId: string; conversationId?: string; scopeMode: AssistantScopeMode; selection?: Pick<AssistantChoice, 'type' | 'id'> }
 export interface AssistantCard { tool: string; title: string; data: unknown }
 export interface AssistantResponse {

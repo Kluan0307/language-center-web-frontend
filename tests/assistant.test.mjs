@@ -3,10 +3,14 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
+import { createRequire } from 'node:module';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 const source = await readFile(new URL('../src/utils/assistant.ts', import.meta.url), 'utf8');
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2023 } });
 const module = { exports: {} }; vm.runInNewContext('(function(module,exports){' + outputText + '\n})', { URL })(module, module.exports);
 const { assistantDestination: link, assistantFailure, parseAssistantResponse, assistantRows, sampleQuestions } = module.exports;
+const localRequire = createRequire(import.meta.url);
 const requestId = '849b9d40-4ecf-438a-ad7a-016e233b8388';
 const scope = { mode: 'ACTIVE_BRANCH', branchIds: [1], label: 'Chi nhánh 1' };
 const response = () => ({ requestId, conversationId: '3a9486b3-7e83-43c1-bb04-20cd41c1c289', status: 'ANSWER', message: 'Có 0 học viên', scope, observedAt: new Date().toISOString(), cards: [{ tool: 'get_student_statistics', title: 'Thống kê học viên', data: { value: 0 } }], choices: [], sources: [], warnings: [], hasMore: false, nextPage: null });
@@ -76,4 +80,39 @@ test('AI overload and timeout have distinct messages and a bounded cooldown', ()
   assert.equal(assistantFailure(503,'MODEL_COOLDOWN').retryAfter,30);
   assert.equal(assistantFailure(503,'CHAT_DISABLED').retryAfter,0);
   assert.match(assistantFailure(504,'MODEL_TIMEOUT').message,/AI chưa phản hồi/);
+});
+
+ test('verified personnel selection is accepted; unknown entity is rejected', () => {
+  const value = { ...response(), status: 'CLARIFICATION_REQUIRED', choices: [{ type: 'PERSONNEL', id: 12, code: 'GV#12', label: 'An', branchId: null }] };
+  assert.equal(parseAssistantResponse(value, requestId, scope), value);
+  assert.throws(() => parseAssistantResponse({ ...value, choices: [{ ...value.choices[0], type: 'RAW_TABLE' }] }, requestId, scope));
+ });
+
+test('personnel result shows qualifications and branch assignments in Vietnamese', async () => {
+  const source = await readFile(new URL('../src/components/Assistant/AssistantResults.tsx', import.meta.url), 'utf8');
+  const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2023 } }).outputText;
+  const renderedModule = { exports: {} };
+  const requireView = name => {
+    if (name === './Assistant.styles') return { Result: 'section' };
+    if (name === '../../utils/assistant') return module.exports;
+    if (name === 'antd') return { Button: () => null };
+    if (name === 'lucide-react') return { ArrowUpRight: () => null };
+    return localRequire(name);
+  };
+  vm.runInNewContext('(function(module,exports,require){' + compiled + '\n})', {})(renderedModule, renderedModule.exports, requireView);
+  const html = renderToStaticMarkup(createElement(renderedModule.exports.AssistantResults, {
+    cards: [{ tool: 'get_personnel_profile', title: 'Hồ sơ', data: { fullName: 'An', qualification: 'Master', certificate: 'IELTS 8.0', branchIds: [1, 2], accountStatus: false } }, { tool: 'get_academic_statistics', title: 'Thống kê', data: { content: [{ branchId: 2, value: 3, metric: 'CLASSES_ONGOING' }] } }, { tool: 'get_cash_flow', title: 'Dòng tiền', data: { netCollected: -100, refundedAmount: 100 } }],
+    onNavigate: () => {}, canNavigate: () => false,
+  }));
+  for (const expected of ['Bằng cấp', 'Master', 'Chứng chỉ', 'IELTS 8.0', '#1, #2', 'Đã khóa', 'Chi nhánh', 'Lớp đang diễn ra', 'Thực thu sau hủy/hoàn', '-100']) assert.ok(html.includes(expected), expected);
+});
+
+test('exam choices preserve verified exam IDs and reject arbitrary types', () => {
+  const value = { ...response(), status: 'CLARIFICATION_REQUIRED', choices: [{ type: 'EXAM', id: 502, code: '#502', label: 'Midterm', branchId: 1 }] };
+  assert.equal(parseAssistantResponse(value, requestId, scope), value);
+});
+
+test('account choices preserve the account identity used for lead assignment', () => {
+  const value = { ...response(), status: 'CLARIFICATION_REQUIRED', choices: [{ type: 'ACCOUNT', id: 102, code: 'TK#102', label: 'An', branchId: null }] };
+  assert.equal(parseAssistantResponse(value, requestId, scope), value);
 });

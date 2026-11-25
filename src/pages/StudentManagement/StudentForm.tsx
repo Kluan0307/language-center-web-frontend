@@ -18,6 +18,8 @@ export default function StudentForm({ editing, defaultBranchId, onClose, onSaved
   const { user } = useAuth();
   const branches = useBranches();
   const [form] = Form.useForm<Values>();
+  const birthDate = Form.useWatch('dateOfBirth', form);
+  const minor = !!birthDate && birthDate.add(18, 'year').isAfter(dayjs(businessDate()), 'day');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const initial = editing ? { ...editing, dateOfBirth: editing.dateOfBirth ? dayjs(editing.dateOfBirth) : undefined,
@@ -57,8 +59,8 @@ export default function StudentForm({ editing, defaultBranchId, onClose, onSaved
         ]} /></Form.Item></Col>
         <Col xs={24} sm={12}><Form.Item name="email" label="Email" rules={[{ type: 'email', message: 'Email không hợp lệ.' }, { max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
         <Col xs={24} sm={12}><Form.Item name="currentLevel" label="Trình độ ghi nhận ban đầu" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
-        <Col xs={24} sm={12}><Form.Item name="guardianName" label="Người giám hộ" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
-        <Col xs={24} sm={12}><Form.Item name="guardianPhone" label="Điện thoại người giám hộ" rules={[{ max: 30 }]}><Input maxLength={30} /></Form.Item></Col>
+        <Col xs={24} sm={12}><Form.Item name="guardianName" label="Người giám hộ" dependencies={['dateOfBirth','guardianPhone']} rules={[{required:minor,whitespace:true,message:'Học viên dưới 18 tuổi cần người giám hộ.'},{max:255},({getFieldValue})=>({validator(_,value){return getFieldValue('guardianPhone')&&!value?.trim()?Promise.reject(new Error('Nhập họ tên người giám hộ.')):Promise.resolve();}})]}><Input maxLength={255} /></Form.Item></Col>
+        <Col xs={24} sm={12}><Form.Item name="guardianPhone" label="Điện thoại người giám hộ" dependencies={['dateOfBirth','guardianName']} rules={[{required:minor,message:'Nhập số điện thoại người giám hộ.'},{max:30},{pattern:/^[+0-9() .-]{6,30}$/,message:'Số điện thoại không hợp lệ.'},({getFieldValue})=>({validator(_,value){return getFieldValue('guardianName')?.trim()&&!value?.trim()?Promise.reject(new Error('Nhập số điện thoại người giám hộ.')):Promise.resolve();}})]}><Input maxLength={30} /></Form.Item></Col>
         <Col span={24}><Form.Item name="contactPerson" label="Liên hệ bổ sung" rules={[{ max: 255 }]}><Input maxLength={255} /></Form.Item></Col>
         <Col span={24}><Form.Item name="address" label="Địa chỉ" rules={[{ max: 255 }]}><Input.TextArea maxLength={255} rows={2} /></Form.Item></Col>
       </Row>

@@ -1,6 +1,8 @@
+import {usePreferences} from './usePreferences';
 import { useSearchParams } from "react-router-dom";
 import type { Dispatch, SetStateAction } from "react";
 type Query = {
+ programId?:number;audienceId?:number;
  allAssigned?:boolean;assignedTo?:number;followUp?:string;classId?:number;role?:string;type?:string;
     overdue?: boolean;
     page?: number;
@@ -14,15 +16,16 @@ type Query = {
     level?: string;
 };
 export function useListQuery<T extends Query>(statuses: readonly string[]) {
+    const {preferences}=usePreferences();
     const [params, setParams] = useSearchParams();
     const read = (p: URLSearchParams) => {
-        const q: Query = { page: 0, size: 10 };
+        const q: Query = { page: 0, size: preferences.pageSize };
         const page = Number(p.get("page")), size = Number(p.get("size"));
         if (Number.isSafeInteger(page) && page >= 0 && page < 100000)
             q.page = page;
         if ([10, 20, 50].includes(size))
             q.size = size;
-        for (const key of ["branchId", "courseId", "teacherId", "assignedTo", "classId"] as const) {
+        for (const key of ["branchId", "courseId", "teacherId", "assignedTo", "classId", "programId", "audienceId"] as const) {
             const value = Number(p.get(key));
             if (Number.isSafeInteger(value) && value > 0)
                 q[key] = value;
@@ -60,7 +63,7 @@ export function useListQuery<T extends Query>(statuses: readonly string[]) {
             "teacherId",
             "level",
             "overdue", "role", "type",
-            "allAssigned", "assignedTo", "followUp", "classId",
+            "allAssigned", "assignedTo", "followUp", "classId", "programId", "audienceId",
         ] as const) {
             const value = nextQuery[key];
             if (value === undefined || value === "")

@@ -1,6 +1,6 @@
 import {scopeLabel as accountScope} from '../../utils/managementScope';
 import {useListQuery} from '../../hooks/useListQuery';
-import {useEffect,useState} from 'react';
+import {useState} from 'react';
 import { Alert, App, Button, Card, Col, Descriptions, Divider, Drawer, Form, Input, Modal, Dropdown, Row, Select, Space, Table, Tag, Typography, DatePicker } from 'antd';
 import type { TableColumnsType } from 'antd';
 import type { Dayjs } from 'dayjs';
@@ -21,6 +21,7 @@ import type { CreateUserRequest, Role, UserResponse } from '../../types/auth';
 import BranchAssignments from './BranchAssignments';
 import ResetPassword from './ResetPassword';
 import TeacherProfilePanel from './TeacherProfilePanel';
+import EmploymentPanel from './EmploymentPanel';
 
 type AccountForm = Omit<CreateUserRequest, 'hireDate'> & { hireDate?: Dayjs; confirmPassword: string };
 export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' | 'STAFF' | 'TEACHER' }) {
@@ -29,8 +30,9 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
   const [query, setQuery] = useListQuery<{ page:number;size:number;keyword?:string;branchId?:number;role?:Role }>([]);
   const resource = useAccounts({ ...query, role: fixedRole ?? query.role });
   const branches = useRemoteResource(branchService.all, {});
-  const [search, setSearch] = useState(query.keyword??'');
- useEffect(()=>setSearch(query.keyword??''),[query.keyword]);
+  const [searchInput, setSearchInput] = useState({source: query.keyword ?? '', text: query.keyword ?? ''});
+  const search = searchInput.source === (query.keyword ?? '') ? searchInput.text : query.keyword ?? '';
+  const setSearch = (text: string) => setSearchInput({source: query.keyword ?? '', text});
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm<AccountForm>();
   const role = Form.useWatch('role', form);
@@ -39,6 +41,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
   const [formError, setFormError] = useState<string>();
   const [resetTarget,setResetTarget]=useState<UserResponse|null>(null);
   const [assignment,setAssignment]=useState<UserResponse|null>(null);
+  const [employment, setEmployment] = useState<UserResponse | null>(null);
   const [detail, setDetail] = useState<UserResponse | null>(null);
   const [teacherProfile,setTeacherProfile]=useState<number|null>(null);
   if (!user) return null;
@@ -92,6 +95,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
     finally { setBusyId(null); }
   }
   const columns: TableColumnsType<UserResponse> = [
+    { title: 'Mã nhân sự', dataIndex: 'personnelCode', width: 115, render: (value: string | null) => value || '—' },
     { title: 'Tài khoản', dataIndex: 'username', render: (_, account) => <div>
       <Button type="link" style={{ padding: 0 }} onClick={() => setDetail(account)}>{account.fullName || account.username}</Button>
       <div><Typography.Text type="secondary">{account.username}</Typography.Text></div>
@@ -99,11 +103,12 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
     { title: 'Vai trò', dataIndex: 'role', render: (value: Role) => <Tag color={value === 'SUPER_ADMIN' ? 'purple' : value === 'ADMIN' ? 'blue' : value === 'TEACHER' ? 'cyan' : 'default'}>{ROLE_LABELS[value]}</Tag> },
     ...(isSuper ? [{ title: 'Chi nhánh', key: 'branches', render: (_:unknown,a:UserResponse) => a.role==='SUPER_ADMIN'?'Toàn hệ thống':(a.branchIds??(a.branchId?[a.branchId]:[])).map(id=>branchName(id)).join(', ')||'Chưa phân công' }] : []),
     { title: 'Liên hệ', key: 'contact', render: (_, a) => <div>{a.phone || '—'}<div><Typography.Text type="secondary">{a.email}</Typography.Text></div></div> },
-    { title: 'Trạng thái', dataIndex: 'status', render: (value,account) => <><Tag color={value ? 'green' : 'default'}>{value ? 'Đang hoạt động' : 'Đã khóa'}</Tag>{account.mustChangePassword&&<Tag color="orange">Cần đổi mật khẩu</Tag>}</> },
+    { title: 'Trạng thái', dataIndex: 'status', render: (value,account) => <><Tag color={value ? 'green' : 'default'}>{value ? 'Tài khoản mở' : 'Tài khoản khóa'}</Tag>{account.workStatus && <Tag color={account.workStatus==='ACTIVE'?'blue':'default'}>{account.workStatus==='ACTIVE'?'Đang làm việc':'Ngừng làm việc'}</Tag>}{account.mustChangePassword&&<Tag color="orange">Cần đổi mật khẩu</Tag>}</> },
     { title: 'Thao tác', key: 'actions', width: 132, render: (_, a) => {
       const manageable = canManageAccount(user, a);
       const items = [
         ...(isSuper && a.role !== 'SUPER_ADMIN' ? [{ key: 'branches', label: 'Phân công chi nhánh', onClick: () => setAssignment(a) }] : []),
+        ...(manageable && (a.role === 'ADMIN' || a.role === 'STAFF') ? [{key:'employment',label:'Hồ sơ làm việc',onClick:()=>setEmployment(a)}] : []),
         ...(manageable ? [
           { key: 'password', label: 'Cấp lại mật khẩu', onClick: () => setResetTarget(a) },
           { key: 'status', label: a.status ? 'Khóa tài khoản' : 'Mở khóa tài khoản', danger: a.status,
@@ -142,7 +147,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
       action={<Button onClick={resource.reload}>Thử lại</Button>} />}
     <Card>
       <Filters>
-        <Input.Search className="search" value={search} allowClear enterButton placeholder={fixedRole === 'ADMIN' ? 'Tìm tên đăng nhập quản trị viên' : 'Tìm tên đăng nhập hoặc họ tên giáo viên'}
+        <Input.Search className="search" value={search} allowClear enterButton placeholder="Tìm mã nhân sự, tên đăng nhập hoặc họ tên"
           onChange={(e) => { setSearch(e.target.value); if (!e.target.value) setQuery((q) => ({ ...q, page: 0, keyword: '' })); }}
           onSearch={(keyword) => setQuery((q) => ({ ...q, keyword: keyword.trim(), page: 0 }))} />
         {!fixedRole && <Select className="filter" placeholder="Tất cả vai trò" allowClear value={query.role}
@@ -210,6 +215,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
     <Drawer title="Hồ sơ tài khoản" open={!!detail} onClose={() => setDetail(null)} size={520}>
       {detail && <Descriptions column={1} bordered items={[
         { key: 'name', label: 'Họ tên', children: detail.fullName || '—' },
+        { key: 'personnelCode', label: 'Mã nhân sự', children: detail.personnelCode || '—' },
         { key: 'username', label: 'Tên đăng nhập', children: detail.username },
         { key: 'role', label: 'Vai trò', children: ROLE_LABELS[detail.role] },
         { key: 'branch', label: 'Chi nhánh', children: detail.role==='SUPER_ADMIN'?'Toàn hệ thống':(detail.branchIds??(detail.branchId?[detail.branchId]:[])).map(id=>branchName(id)+(id===detail.branchId?' (Chính)':'')).join(', ')||'Chưa phân công' },
@@ -218,6 +224,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
         { key: 'email', label: 'Email', children: detail.email || '—' },
         { key: 'hire', label: 'Ngày vào làm', children: displayDate(detail.hireDate, false) },
         ...(detail.role !== 'SUPER_ADMIN' ? [{ key: 'work', label: 'Trạng thái làm việc', children: detail.workStatus === 'ACTIVE' ? 'Đang làm việc' : detail.workStatus === 'INACTIVE' ? 'Ngừng làm việc' : detail.workStatus || '—' }] : []),
+        ...(detail.role !== 'SUPER_ADMIN' ? [{key:'endDate',label:'Ngày kết thúc làm việc',children:displayDate(detail.endDate,false)}] : []),
         { key: 'created', label: 'Ngày tạo', children: displayDate(detail.createdAt) },
         { key: 'login', label: 'Đăng nhập gần nhất', children: displayDate(detail.lastLogin) },
         ...(detail.role === 'STAFF' ? [{ key: 'position', label: 'Vị trí', children: detail.position || '—' }] : []),
@@ -231,6 +238,7 @@ export default function AccountManagement({ fixedRole }: { fixedRole?: 'ADMIN' |
     </Drawer>
     {resetTarget&&<ResetPassword account={resetTarget} onClose={()=>setResetTarget(null)} onSaved={()=>{setResetTarget(null);setDetail(null);resource.reload();}}/>}
     {assignment&&<BranchAssignments account={assignment} branches={branches.data} onClose={()=>setAssignment(null)} onSaved={saved=>{setAssignment(null);if(detail?.accountId===saved.accountId)setDetail(saved);resource.reload();}}/>}
+  {employment && <EmploymentPanel account={employment} onClose={()=>setEmployment(null)} onSaved={()=>{setEmployment(null);setDetail(null);resource.reload();}}/>}
   {teacherProfile!==null&&<TeacherProfilePanel key={teacherProfile} id={teacherProfile} onClose={()=>setTeacherProfile(null)} onChanged={resource.reload}/>}</ManagementLayout>;
 }
 

@@ -1,3 +1,4 @@
+import {usePreferences} from '../../hooks/usePreferences';
 import {managementClasses} from '../../services/managementOptions';
 import {ContextLink} from '../../components/Common/ContextLink';
 import {positiveId} from '../../utils/admissions';
@@ -49,7 +50,8 @@ export default function SessionManagement() {
   const [params, setParams] = useSearchParams();
   const [defaultView] = useState<'week' | 'day'>(() => window.matchMedia('(max-width: 767px)').matches ? 'day' : 'week');
   const today = businessDate();
-  const state = readScheduleState(params, today, defaultView);
+  const {preferences}=usePreferences();
+  const state = readScheduleState(params, today, preferences.version>0?preferences.calendarView:defaultView);
   const { query:rawQuery, roomId, date, calendarView, display: displayMode } = state;
   const query={...rawQuery,allAssigned:user?.role==='ADMIN'&&rawQuery.allAssigned?true:undefined};
   const classId = query.classId;

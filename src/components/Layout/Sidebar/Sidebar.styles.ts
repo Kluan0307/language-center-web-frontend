@@ -199,3 +199,12 @@ export const MobileBar = styled.div`
   border-bottom:1px solid #e2e8f0;z-index:900;
  }
 `;
+export const FooterMenu = styled.nav`
+ display:flex;flex-direction:column;gap:2px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid #F1F5F9;
+`;
+export const FooterItem = styled.button`
+ display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:#64748B;font:inherit;font-size:13.5px;font-weight:500;text-align:left;cursor:pointer;text-decoration:none;
+ &:hover{background:#EFF6FF;color:#2563EB;}
+ &.active{background:#EFF6FF;color:#2563EB;}
+ &:focus-visible{outline:2px solid #2563EB;outline-offset:2px;}
+`;

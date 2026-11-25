@@ -1,5 +1,6 @@
+import {settingsService} from '../services/settingsService';
 import { Fragment, useState, useEffect, useCallback, useSyncExternalStore, type ReactNode } from 'react';
-import { ensureBranch, getActiveBranch, subscribeBranch } from '../utils/branchScope';
+import { ensureBranch, selectBranch, getActiveBranch, subscribeBranch } from '../utils/branchScope';
 import {PASSWORD_REFRESH_EVENT} from '../utils/accountSecurity';
 import { authService } from '../services/authService';
 import { AuthContext } from './auth-state';
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setVerified({ token: data.token, user, error: null });
     saveSession(data.token, remember);
     ensureBranch(user);
+    try { const preferences=await settingsService.preferences({},undefined,data.token); if(preferences.defaultBranchId && user.role!=='SUPER_ADMIN' && user.branchIds?.includes(preferences.defaultBranchId)) selectBranch(preferences.defaultBranchId); } catch { /* Login remains usable with the account primary branch. */ }
     return data;
   };
   const current = token && verified?.token === token ? verified : null;

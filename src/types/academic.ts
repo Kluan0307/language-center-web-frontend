@@ -4,12 +4,16 @@ export type CourseState = 'OPEN' | 'CLOSED';
 export type RoomState = 'AVAILABLE' | 'MAINTENANCE';
 export type ClassProgress = 'UPCOMING' | 'ONGOING' | 'FINISHED';
 export type Weekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+export interface ClassificationOption {id:number;code:string;name:string;active:boolean}
+export interface ClassificationCatalog {programs:ClassificationOption[];audiences:ClassificationOption[]}
 export interface CourseDto {
+  programId:number|null;audiences:ClassificationOption[];classificationRevision:number;classificationComplete:boolean;
   id: number; code: string; name: string; type: string | null; level: string | null;
   duration: number|null; expectedMinutes:number|null;durationRevision:number; tuitionFee: number; content: string | null; entryRequirement: string | null;
   maxStudents: number; status: CourseState; branchId: number | null;
 }
 export interface CourseRequest {
+  programId?:number;audienceIds?:number[];classificationRevision?:number;
   code: string; name: string; type?: string; level?: string; duration?: number|null; expectedMinutes?:number; tuitionFee: number;
   content?: string; entryRequirement?: string; maxStudents: number; branchId?: number | null;
 }
@@ -48,7 +52,7 @@ export interface ConflictRequest extends ScheduleSlot {
 export interface ScheduleConflict extends ScheduleSlot {
   scheduleId: number; classId: number; classCode: string; className: string; reason: string;
 }
-export interface CourseQuery extends PageQuery { status?: CourseState; branchId?: number; level?: string; type?: string }
+export interface CourseQuery extends PageQuery { programId?:number;audienceId?:number; status?: CourseState; branchId?: number; level?: string; type?: string }
 export interface RoomQuery extends PageQuery { status?: RoomState; branchId?: number }
 export interface ClassQuery extends PageQuery { status?: ClassProgress | 'FULL'; courseId?: number; teacherId?: number; branchId?: number }
 export interface ScheduleQuery extends PageQuery { classId?: number; branchId?: number; dayOfWeek?: Weekday; teacherId?: number; roomId?: number }

@@ -19,6 +19,9 @@ import {
 import { useBranches } from "../../hooks/useBranches";
 import { useAuth } from "../../hooks/useAuth";
 import { useRemoteResource } from "../../hooks/useRemoteResource";
+import { api } from "../../api/axiosInstance";
+import type { ClassificationCatalog } from "../../types/academic";
+const loadClassification=async (_:Record<string,never>,signal?:AbortSignal):Promise<ClassificationCatalog> => (await api.get("/academic/courses/classification-catalog",{signal})).data;
 import { courseService } from "../../services/academicService";
 import { applyFormErrors, getErrorMessage } from "../../utils/apiErrors";
 import {
@@ -39,6 +42,7 @@ export default function CourseManagement() {
   const { user } = useAuth();
   const { message } = App.useApp();
   const branches = useBranches();
+  const classification=useRemoteResource(loadClassification,{});
   const [query, setQuery] = useListQuery<CourseQuery>(['OPEN','CLOSED']);
   const list = useRemoteResource(courseService.list, query);
   const [search, setSearch] = useState(query.keyword??'');
@@ -60,9 +64,12 @@ export default function CourseManagement() {
       course
         ? {
             ...course,
+            type:undefined,
             expectedMinutes: course.expectedMinutes ?? undefined,
             branchId: course.branchId ?? 0,
-            type: course.type ?? "",
+            programId:course.programId??undefined,
+            audienceIds:course.audiences?.map(a=>a.id)??[],
+            classificationRevision:course.classificationRevision,
             level: course.level ?? "",
             content: course.content ?? "",
             entryRequirement: course.entryRequirement ?? "",
@@ -84,7 +91,10 @@ export default function CourseManagement() {
       ...values,
       code: values.code.trim(),
       name: values.name.trim(),
-      type: values.type?.trim() || undefined,
+      type: undefined,
+      programId:values.programId,
+      audienceIds:values.audienceIds,
+      classificationRevision:editing?.classificationRevision??0,
       level: values.level?.trim() || undefined,
       content: values.content?.trim() || undefined,
       entryRequirement: values.entryRequirement?.trim() || undefined,
@@ -167,7 +177,9 @@ export default function CourseManagement() {
       key: "type",
       render: (_, c) => (
         <div>
-          {c.type || "—"}
+          {classification.data?.programs.find(p=>p.id===c.programId)?.name||"Chưa xác nhận chương trình"}
+          <div>{c.audiences?.map(a=><Tag key={a.id}>{a.name}</Tag>)}</div>
+          {!c.classificationComplete&&<Tag color="orange">Chưa xác nhận đủ phân loại</Tag>}
           <div>
             <Typography.Text type="secondary">{c.level}</Typography.Text>
           </div>
@@ -259,7 +271,10 @@ export default function CourseManagement() {
       )}
       <LoadError error={list.error} reload={list.reload} />
       <Card>
+        {classification.error&&<LoadError error={classification.error} reload={classification.reload}/>}
         <Filters>
+          <Select className="filter" aria-label="Chương trình" placeholder="Tất cả chương trình" allowClear value={query.programId} loading={classification.loading} options={classification.data?.programs.map(p=>({value:p.id,label:p.name}))} onChange={programId=>setQuery(q=>({...q,programId,page:0}))}/>
+          <Select className="filter" aria-label="Đối tượng học" placeholder="Tất cả đối tượng" allowClear value={query.audienceId} options={classification.data?.audiences.map(a=>({value:a.id,label:a.name}))} onChange={audienceId=>setQuery(q=>({...q,audienceId,page:0}))}/>
           <Input.Search
             className="search"
             allowClear
@@ -401,12 +416,10 @@ export default function CourseManagement() {
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-              <Form.Item name="type" label="Loại khóa" rules={[{ max: 255 }]}>
-                <Input
-                  maxLength={255}
-                  placeholder="Ví dụ: IELTS, TOEIC, Giao tiếp"
-                />
-              </Form.Item>
+              {!manager&&!editing?.classificationComplete&&<Alert type="info" title="Khóa chưa đủ phân loại. Nhờ Admin hoặc Superadmin xác nhận trước khi chỉnh sửa."/>}
+              <Form.Item name="programId" label="Chương trình" rules={[{required:true,message:'Chọn chương trình'}]}><Select disabled={!manager||classification.loading} loading={classification.loading} options={classification.data?.programs.map(p=>({value:p.id,label:p.name,disabled:!p.active&&editing?.programId!==p.id}))}/></Form.Item>
+              <Form.Item name="audienceIds" label="Đối tượng phù hợp" rules={[{required:true,type:'array',min:1,message:'Chọn ít nhất một đối tượng'}]}><Select mode="multiple" disabled={!manager||classification.loading} options={classification.data?.audiences.map(a=>({value:a.id,label:a.name,disabled:!a.active&&!editing?.audiences?.some(current=>current.id===a.id)}))}/></Form.Item>
+              <Typography.Paragraph type="secondary">Đối tượng phục vụ tư vấn và tìm kiếm, không thay thế trình độ đầu vào. Không tự suy đoán đối tượng từ tên khóa.</Typography.Paragraph>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
@@ -523,8 +536,8 @@ export default function CourseManagement() {
                 },
                 {
                   key: "type",
-                  label: "Loại khóa",
-                  children: detail.type || "—",
+                  label: "Chương trình",
+                  children: classification.data?.programs.find(p=>p.id===detail.programId)?.name||"Chưa xác nhận chương trình",
                 },
                 {
                   key: "level",

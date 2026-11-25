@@ -72,9 +72,9 @@ async function loadTsx(relativePath, mocks) {
 }
 const styleTags = { DesktopSlot: 'div', MobileBar: 'div', SidebarContainer: 'aside', SidebarTop: 'div', Header: 'header',
   AvatarWrapper: 'div', InfoWrapper: 'div', UserName: 'p', UserRole: 'p', Menu: 'nav',
-  MenuGroup: 'section', GroupLabel: 'p', SidebarBottom: 'footer', LogoutButton: 'button' };
+  MenuGroup: 'section', GroupLabel: 'p', SidebarBottom: 'footer', FooterMenu: 'nav', FooterItem: 'button', LogoutButton: 'button' };
 const sidebarStyles = Object.fromEntries(Object.entries(styleTags).map(([key, tag]) => [
-  key, ({ children, ...props }) => React.createElement(tag, props, children),
+  key, ({ children, as: Component = tag, ...props }) => React.createElement(Component, props, children),
 ]));
 for (const role of ROLES) {
   test(role + ': rendered sidebar contains exactly the authorized links', async () => {
@@ -91,7 +91,7 @@ for (const role of ROLES) {
     const html = renderToStaticMarkup(React.createElement(MemoryRouter, { initialEntries: ['/dashboard'] },
       React.createElement(Sidebar)));
     const links = [...html.matchAll(/href="([^"]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(links.sort(), getNavigation(role).map((item) => item.path).sort());
+    assert.deepEqual(links.sort(), [...getNavigation(role).map((item) => item.path), ...(role === 'SUPER_ADMIN' || role === 'ADMIN' ? ['/website-content'] : []), '/company', '/help', '/settings'].sort());
     assert.ok(html.includes(navigation.ROLE_LABELS[role]));
     assert.ok(html.includes('aria-current="page"'));
     assert.ok(html.includes(role === 'SUPER_ADMIN' ? 'Phạm vi: toàn hệ thống' : 'Chi nhánh #11'));

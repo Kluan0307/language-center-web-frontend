@@ -1,3 +1,4 @@
+import {PreferencesProvider} from './context/PreferencesProvider';
 import {managementTheme} from './components/Common/theme';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -39,6 +40,10 @@ const AccountManagement = lazy(() => import('./pages/AccountManagement'));
 const BranchManagement = lazy(() => import('./pages/BranchManagement'));
 const TeacherDirectory = lazy(() => import('./pages/TeacherDirectory'));
 const ChangePassword = lazy(() => import('./pages/ChangePassword'));
+const WebsiteContent = lazy(() => import('./pages/WebsiteContent'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Company = lazy(() => import('./pages/Company'));
+const InternalSupport = lazy(() => import('./pages/InternalSupport'));
 const Profile = lazy(() => import('./pages/Profile'));
 const ProgramManagement = lazy(() => import('./pages/ProgramManagement'));
 const CourseManagement = lazy(() => import('./pages/CourseManagement'));
@@ -75,7 +80,7 @@ function App() {
     <ConfigProvider locale={viVN} theme={managementTheme}>
       <AntdApp message={{ top: 24, duration: 3, maxCount: 3 }}>
         <BrowserRouter>
-          <AuthProvider>
+          <AuthProvider><PreferencesProvider>
             <GlobalStyle /><MessageGlobalStyle />
             <Suspense fallback={null}><Assistant /></Suspense>
             <Suspense fallback={<div role="status" style={{ padding: 48, textAlign: 'center' }}><Spin /><p>Đang tải trang…</p></div>}><Routes>
@@ -93,11 +98,15 @@ function App() {
                 </Route>
                 <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route element={<ProtectedRoute allowedRoles={['SUPER_ADMIN','ADMIN']} />}><Route path="/website-content" element={<WebsiteContent />} /></Route>
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/company" element={<Company />} />
+                <Route path="/help" element={<InternalSupport />} />
                 <Route path="/forbidden" element={<StatusPage status="403" />} />
                 <Route path="*" element={<StatusPage status="404" />} />
               </Route>
             </Routes></Suspense>
-          </AuthProvider>
+          </PreferencesProvider></AuthProvider>
         </BrowserRouter>
       </AntdApp>
     </ConfigProvider>

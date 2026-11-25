@@ -16,7 +16,7 @@ export function parseAssistantResponse(value: unknown, requestId: string, expect
     || scope.mode !== expected.mode || !words(scope.label, 300) || !Array.isArray(scope.branchIds)
     || scope.branchIds.some(id => !positive(id)) || [...scope.branchIds].sort().join(',') !== [...expected.branchIds].sort().join(',')
     || !Array.isArray(r.cards) || r.cards.length > 4 || r.cards.some(c => !words(object(c).tool, 64) || !words(object(c).title, 120))
-    || !Array.isArray(r.choices) || r.choices.length > 5 || r.choices.some(c => !['STUDENT', 'CLASS', 'SESSION'].includes(String(object(c).type)) || !positive(object(c).id) || !words(object(c).label, 700) || !words(object(c).code, 120) || !(object(c).branchId === null || positive(object(c).branchId)))
+    || !Array.isArray(r.choices) || r.choices.length > 5 || r.choices.some(c => !['STUDENT', 'CLASS', 'SESSION', 'PERSONNEL', 'EXAM', 'ACCOUNT'].includes(String(object(c).type)) || !positive(object(c).id) || !words(object(c).label, 700) || !words(object(c).code, 120) || !(object(c).branchId === null || positive(object(c).branchId)))
     || !Array.isArray(r.warnings) || r.warnings.length > 10 || r.warnings.some(w => !words(w, 1000))
     || !Array.isArray(r.sources) || r.sources.length > 4 || r.sources.some(s => !words(object(s).tool, 64) || !Number.isFinite(Date.parse(String(object(s).observedAt))))
     || typeof r.hasMore !== 'boolean' || !(r.nextPage === null || Number.isSafeInteger(r.nextPage) && Number(r.nextPage) >= 0)) throw Error('INVALID_ASSISTANT_RESPONSE');

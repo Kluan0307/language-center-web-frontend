@@ -5,6 +5,7 @@ export interface LoginResponse {
   branchIds?: number[];
   token: string;
   accountId: number;
+  personnelCode?: string | null;
   profileId: number;
   branchId: number | null;
   username: string;
@@ -17,6 +18,7 @@ export interface UserResponse {
   branchIds?: number[];
   primaryBranchId?: number | null;
   accountId: number;
+  personnelCode?: string | null;
   profileId: number | null;
   branchId: number | null;
   fullName: string | null;
@@ -29,6 +31,8 @@ export interface UserResponse {
   lastLogin: string | null;
   hireDate: string | null;
   workStatus: string | null;
+  endDate?: string | null;
+  employmentVersion?: number | null;
   position: string | null;
   specialization: string | null;
   qualification: string | null;
@@ -53,6 +57,7 @@ export interface CreateUserRequest {
 }
 export interface TeacherOption {
   branchIds?: number[];
+  personnelCode?: string | null;
   profileId: number;
   accountId: number;
   fullName: string;

@@ -1,3 +1,7 @@
+**Docker DCK6 (25/11/2026):** hoàn tất bộ lệnh vận hành, backup/restore DB + tài liệu, thử cập nhật/rollback hai image web và restart toàn stack. 9 container healthy; Docker hiện có 419 tài khoản, 400 học viên, 20 khóa, 40 lớp. Kiểm tra đạt: 13 backup/restore, 8 lifecycle, 23 chức năng/phân quyền và 38 HTTP/web. [Lệnh vận hành](../language-center-backend/language-center-backend/docs/docker/dck6-handoff.md).
+
+**Docker DCK4 (24/11/2026):** Web quản lý chạy tại http://localhost:15173, cùng stack Gateway/MySQL riêng. Từ backend root chạy `.\scripts\docker\compose.ps1 -Action up -Web -Assistant -Build` (các lần sau bỏ `-Build`). Database Docker hiện rỗng; dữ liệu/tài khoản cũ chờ phục hồi ở DCK5. [Hướng dẫn cấu hình và kiểm chứng](../language-center-backend/language-center-backend/docs/docker/dck4-handoff.md).
+
 # Language Center Frontend
 
 **Trợ lý C6 — 13/11/2026:** đã có drawer Ant Design + styled-components cho bốn role; card, lựa chọn trùng tên, scope/chi nhánh, retry và xử lý phiên đổi. 119 test web đạt, build và lint phần C6 đạt. [Bàn giao, ảnh UI, cách chạy và giới hạn](../language-center-backend/language-center-backend/docs/assistant/c6-completion.md). Gemini/API thật còn nghiệm thu C7; không đưa key vào frontend.

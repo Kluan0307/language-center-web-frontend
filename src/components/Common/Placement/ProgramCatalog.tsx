@@ -7,6 +7,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Select,
   Modal,
   Space,
   Switch,
@@ -100,7 +101,7 @@ function CatalogForm({
             },
           ]}
         >
-          <Input disabled={!!editing} maxLength={50} />
+          {!level&&!editing?<Select options={['GE','COMMUNICATION','IELTS','TOEIC'].map(code=>({value:code,label:code}))}/>:<Input disabled={!!editing} maxLength={50} />}
         </Form.Item>
         <Form.Item
           name="name"

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, LogOut, Building2, UserPlus, Users, GraduationCap, UserCheck,
   BookOpen, School, ClipboardList, DoorOpen, CalendarCheck, CalendarDays, FileText,
   Award, BarChart3, ShieldCheck, ClipboardCheck, CreditCard, Receipt, CalendarClock,
-  BookMarked, type LucideIcon,
+  BookMarked, Building2 as BuildingComplex, CircleQuestionMark, Settings, type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import {
@@ -70,6 +70,12 @@ function Sidebar() {
         </S.Menu>
       </S.SidebarTop>
       <S.SidebarBottom>
+        {(role==='SUPER_ADMIN'||role==='ADMIN')&&<S.FooterItem as={NavLink} to="/website-content" onClick={()=>setOpen(false)}><BookOpen size={18}/><span>Nội dung website</span></S.FooterItem>}
+        <S.FooterMenu aria-label="Ti?n ?ch">
+          <S.FooterItem as={NavLink} to="/company" onClick={()=>setOpen(false)}><BuildingComplex size={18} aria-hidden="true" /><span>Công ty</span></S.FooterItem>
+          <S.FooterItem as={NavLink} to="/help" onClick={()=>setOpen(false)}><CircleQuestionMark size={18} aria-hidden="true" /><span>Hỗ trợ</span></S.FooterItem>
+          <S.FooterItem as={NavLink} to="/settings" onClick={()=>setOpen(false)}><Settings size={18} aria-hidden="true" /><span>Cài đặt</span></S.FooterItem>
+        </S.FooterMenu>
         <S.LogoutButton type="button" onClick={() => { setOpen(false); logout(); }}>
           <LogOut size={18} aria-hidden="true" /><span>Đăng xuất</span>
         </S.LogoutButton>
