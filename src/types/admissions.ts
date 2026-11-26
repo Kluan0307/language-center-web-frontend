@@ -20,6 +20,7 @@ export interface StudentRegistration {
 }
 export interface StudentDetail { student: StudentDto; enrollments: StudentRegistration[] }
 export interface LeadDto {
+  preferredClassId?:number|null;preferredClassName?:string|null;preferredTime?:string|null;
   version:number;nextContactAt:string|null;overdue:boolean;
   id: number; fullName: string; phone: string; email: string | null; source: string | null;
   interestedCourseId: number | null; interestedCourseName: string | null; desiredLevel: string | null;
@@ -27,6 +28,7 @@ export interface LeadDto {
   convertedStudent: StudentDto | null; createdAt: string; lastContactedAt: string | null; branchId: number;
 }
 export interface LeadRequest {
+  preferredClassId?:number;preferredTime?:string;
   version?:number;
   fullName: string; phone: string; email?: string; source?: string; interestedCourseId?: number;
   desiredLevel?: string; note?: string; branchId?: number;

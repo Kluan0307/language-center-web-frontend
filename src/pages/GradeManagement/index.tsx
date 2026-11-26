@@ -1,3 +1,4 @@
+import GradingWorkspace from "../../components/Common/Evaluation/GradingWorkspace";
 import {ContextLink} from '../../components/Common/ContextLink';
 import StudentPublicationPanel from "./StudentPublicationPanel";
 import FinalResultPanel from "../../components/Common/Evaluation/FinalResultPanel";
@@ -176,6 +177,7 @@ export default function GradeManagement() {
               })
             }
             items={[
+              {key:"schemes",label:"Đánh giá theo quy chế",children:<GradingWorkspace key={classId} classId={classId} schoolClass={classes.data?.find(c=>c.id===classId)}/>},
               {
                 key: "final",
                 label: "Kết quả chính thức",

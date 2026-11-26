@@ -1,20 +1,18 @@
 import { useState } from 'react';
-import { Button, Drawer } from 'antd';
-import { Menu as MenuIcon } from 'lucide-react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Drawer,Dropdown } from 'antd';
+import { NavLink,useLocation,useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, LogOut, Building2, UserPlus, Users, GraduationCap, UserCheck,
+  Menu as MenuIcon, LayoutDashboard, LogOut, Building2, UserPlus, Users, GraduationCap, UserCheck,
   BookOpen, School, ClipboardList, DoorOpen, CalendarCheck, CalendarDays, FileText,
   Award, BarChart3, ShieldCheck, ClipboardCheck, CreditCard, Receipt, CalendarClock,
   BookMarked, Building2 as BuildingComplex, CircleQuestionMark, Settings, type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import {
-  getNavigationGroups, getItemLabel, ROLE_LABELS, type NavigationIcon,
+  getNavigationGroups, getItemLabel, type NavigationIcon,
 } from '../../../config/navigation';
-import AVATAR_DEFAULT from '../../../assets/images/avatar-default.png';
 import * as S from './Sidebar.styles';
-import BranchSwitcher from './BranchSwitcher';
+import Topbar from './Topbar';
 
 const ICONS: Record<NavigationIcon, LucideIcon> = {
   dashboard: LayoutDashboard, branch: Building2, accounts: ShieldCheck,
@@ -25,29 +23,28 @@ const ICONS: Record<NavigationIcon, LucideIcon> = {
   reports: BarChart3, myClasses: BookMarked, mySchedule: CalendarClock,
 };
 
+function FooterUtilities({onNavigate}:{onNavigate:()=>void}){
+ const {user,logout}=useAuth();const location=useLocation();const navigate=useNavigate();const [expanded,setExpanded]=useState(false);
+ const manager=user?.role==='SUPER_ADMIN'||user?.role==='ADMIN';
+ const items=[...(manager?[{key:'/website-content',label:"Nội dung website",icon:<BookOpen size={17} aria-hidden="true"/>}]:[]),
+ {key:'/company',label:"Công ty",icon:<BuildingComplex size={17} aria-hidden="true"/>},
+ {key:'/help',label:"Hỗ trợ",icon:<CircleQuestionMark size={17} aria-hidden="true"/>},
+ {key:'/settings',label:"Cài đặt",icon:<Settings size={17} aria-hidden="true"/>},
+ {key:'divider',type:'divider' as const},
+ {key:'logout',label:'Đăng xuất',icon:<LogOut size={17} aria-hidden="true"/>,danger:true}];
+ return <Dropdown trigger={['click']} placement="topLeft" open={expanded} onOpenChange={setExpanded} menu={{items,selectedKeys:[location.pathname],onClick:({key})=>{setExpanded(false);onNavigate();if(key==='logout')logout();else navigate(key);}}}>
+  <S.FooterItem type="button" aria-label="Mở menu tiện ích" aria-haspopup="menu" aria-expanded={expanded} className={items.some(item=>item.key===location.pathname)?'active':undefined}><MenuIcon size={20} aria-hidden="true"/><span>Thêm</span></S.FooterItem>
+ </Dropdown>;
+}
+
 function Sidebar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const role = user?.role;
   const groups = role ? getNavigationGroups(role) : [];
   const content = (<>
       <S.SidebarTop>
-        <S.Header>
-          <S.AvatarWrapper><img src={AVATAR_DEFAULT} alt="" /></S.AvatarWrapper>
-          <S.InfoWrapper>
-            <S.UserName as="button" type="button" onClick={() => navigate('/profile')} title="Xem hồ sơ của tôi"
-              style={{ border: 0, padding: 0, background: 'transparent', textAlign: 'left', cursor: 'pointer' }}>
-              {user?.fullName || user?.username || 'Người dùng'}
-            </S.UserName>
-            <S.UserRole>{role ? ROLE_LABELS[role] : 'Chưa xác thực'}</S.UserRole>
-            <S.UserRole>
-              {role === 'SUPER_ADMIN' ? 'Phạm vi: toàn hệ thống'
-                : user?.branchId ? `Chi nhánh #${user.branchId}` : 'Chưa được gán chi nhánh'}
-            </S.UserRole>
-          </S.InfoWrapper>
-        </S.Header>
-        <BranchSwitcher />
+        <S.Brand as={NavLink} to="/dashboard" onClick={()=>setOpen(false)} aria-label="Language Center · Trang tổng quan"><img src="/brand/logo.svg" alt=""/><span>LANGUAGE CENTER<small>ENGLISH EDUCATION</small></span></S.Brand>
         <S.Menu aria-label="Điều hướng chính">
           {groups.map((group) => (
             <S.MenuGroup key={group.label || 'overview'}>
@@ -69,20 +66,10 @@ function Sidebar() {
           ))}
         </S.Menu>
       </S.SidebarTop>
-      <S.SidebarBottom>
-        {(role==='SUPER_ADMIN'||role==='ADMIN')&&<S.FooterItem as={NavLink} to="/website-content" onClick={()=>setOpen(false)}><BookOpen size={18}/><span>Nội dung website</span></S.FooterItem>}
-        <S.FooterMenu aria-label="Ti?n ?ch">
-          <S.FooterItem as={NavLink} to="/company" onClick={()=>setOpen(false)}><BuildingComplex size={18} aria-hidden="true" /><span>Công ty</span></S.FooterItem>
-          <S.FooterItem as={NavLink} to="/help" onClick={()=>setOpen(false)}><CircleQuestionMark size={18} aria-hidden="true" /><span>Hỗ trợ</span></S.FooterItem>
-          <S.FooterItem as={NavLink} to="/settings" onClick={()=>setOpen(false)}><Settings size={18} aria-hidden="true" /><span>Cài đặt</span></S.FooterItem>
-        </S.FooterMenu>
-        <S.LogoutButton type="button" onClick={() => { setOpen(false); logout(); }}>
-          <LogOut size={18} aria-hidden="true" /><span>Đăng xuất</span>
-        </S.LogoutButton>
-      </S.SidebarBottom>
+      <S.SidebarBottom><FooterUtilities onNavigate={()=>setOpen(false)}/></S.SidebarBottom>
     </>);
   return (<>
-    <S.MobileBar><Button aria-label="Mở menu điều hướng" aria-expanded={open} aria-controls="mobile-navigation" icon={<MenuIcon size={20}/>} onClick={()=>setOpen(true)}>Menu</Button><strong>Language Center</strong></S.MobileBar>
+    <Topbar open={open} onMenu={()=>setOpen(true)}/>
     <S.DesktopSlot><S.SidebarContainer>{content}</S.SidebarContainer></S.DesktopSlot>
     <Drawer id="mobile-navigation" title="Điều hướng" placement="left" size={280} open={open} onClose={()=>setOpen(false)}
       styles={{body:{display:'flex',flexDirection:'column',padding:14,overflow:'hidden'}}}>{content}</Drawer>

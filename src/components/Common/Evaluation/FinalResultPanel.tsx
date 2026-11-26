@@ -22,9 +22,9 @@ import { evaluationService } from "../../../services/evaluationService";
 import { LoadError } from "../Academic";
 import { getErrorMessage } from "../../../utils/apiErrors";
 import { displayDate } from "../../../utils/display";
-const labels = { PASS: "Đạt", FAIL: "Chưa đạt" };
+const labels = { PASS: "Đạt", FAIL: "Chưa đạt", ASSESSED: "Đã hoàn thành đánh giá" };
 function SnapshotView({ snapshot }: { snapshot: string }) {
-  let data: import("../../../services/finalResultService").FinalPreview;
+  let data: import("../../../services/finalResultService").FinalPreview & {gradingReleaseId?:number;row?:import("../../../services/gradingService").ResultRow};
   try {
     data = JSON.parse(snapshot);
   } catch {
@@ -35,6 +35,8 @@ function SnapshotView({ snapshot }: { snapshot: string }) {
       />
     );
   }
+  if(data.gradingReleaseId && data.row){const row=data.row;return <Space orientation="vertical" style={{width:'100%'}}><Typography.Paragraph>Kết quả theo quy chế · bản công bố #{data.gradingReleaseId}</Typography.Paragraph><Descriptions column={1} items={[{key:'student',label:'Học viên',children:row.studentName},{key:'score',label:'Kết quả',children:row.score===null?'Đã đánh giá':row.score+' '+(row.unit==='PERCENT'?'%':row.unit==='BAND'?'band':'điểm TOEIC')},{key:'attendance',label:'Chuyên cần',children:row.attendance.percent===null?'Không áp dụng / chưa đủ dữ liệu':row.attendance.percent+'%'}]}/><Table rowKey="code" size="small" pagination={false} scroll={{x:500}} dataSource={row.components} columns={[{title:'Thành phần',dataIndex:'name'},{title:'Kết quả',render:(_,c)=>c.level?({NEEDS_SUPPORT:'Cần hỗ trợ',DEVELOPING:'Đang phát triển',MEETS_EXPECTATIONS:'Đạt yêu cầu'}[c.level]??c.level):c.score===null?'Chưa có điểm':c.score+' / '+c.maxScore},{title:'Trọng số',render:(_,c)=>c.weight===null?'—':c.weight+'%'}]}/>{row.reasons.map((r,i)=><Typography.Paragraph key={i}>{r}</Typography.Paragraph>)}</Space>;}
+  if(!data.evaluation)return <Alert type="warning" title="Bản lưu chưa đủ thông tin để hiển thị chi tiết."/>;
   const r = data.evaluation;
   return (
     <Space orientation="vertical" style={{ width: "100%" }}>

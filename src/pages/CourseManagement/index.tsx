@@ -240,6 +240,7 @@ export default function CourseManagement() {
       description="Quản lý nội dung đào tạo, học phí và giới hạn sĩ số."
       actions={
         <>
+          {["SUPER_ADMIN","ADMIN"].includes(user.role)&&<Link to="/website-content?kind=COURSE"><Button>Ảnh và nội dung website</Button></Link>}
           {user.role === "SUPER_ADMIN" && (
             <Link to="/programs"><Button>Chương trình và trình độ</Button></Link>
           )}

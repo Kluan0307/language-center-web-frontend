@@ -1,3 +1,5 @@
+import {Link} from 'react-router-dom';
+import {useAuth} from '../../hooks/useAuth';
 import {useListQuery} from '../../hooks/useListQuery';
 
 import { Alert, Button, Card, Input, Table, Typography } from 'antd';
@@ -8,11 +10,12 @@ import { authService } from '../../services/authService';
 import type { TeacherOption } from '../../types/auth';
 
 export default function TeacherDirectory() {
+  const {user}=useAuth();
   const resource = useRemoteResource(authService.teachers, {});
   const [query,setQuery]=useListQuery<{page:number;size:number;keyword?:string}>([]);const keyword=query.keyword??'';const setKeyword=(keyword:string)=>setQuery(q=>({...q,keyword,page:0}));
   const rows = resource.data?.filter((t) => t.fullName.toLocaleLowerCase('vi').includes(keyword.trim().toLocaleLowerCase('vi'))) ?? [];
   return <ManagementLayout title="Giáo viên" description="Tra cứu giáo viên đang hoạt động, khả dụng trong chi nhánh của bạn."
-    actions={<Button icon={<RefreshCw size={16} />} onClick={resource.reload} loading={resource.loading}>Tải lại</Button>}>
+    actions={<>{user?.role==="SUPER_ADMIN"&&<Link to="/website-content?kind=TEACHER"><Button>Ảnh và hồ sơ website</Button></Link>}<Button icon={<RefreshCw size={16} />} onClick={resource.reload} loading={resource.loading}>Tải lại</Button></>}>
     {resource.error && <Alert showIcon type="error" title="Không tải được danh sách" description={resource.error}
       action={<Button onClick={resource.reload}>Thử lại</Button>} />}
     <Card>

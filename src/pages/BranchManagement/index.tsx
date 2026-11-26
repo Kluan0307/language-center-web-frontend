@@ -1,3 +1,4 @@
+import {Link} from 'react-router-dom';
 import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
 import {useEffect,useState} from 'react';
@@ -92,6 +93,7 @@ export default function BranchManagement() {
   ];
   return <ManagementLayout title="Chi nhánh" description="Quản lý thông tin và trạng thái các chi nhánh trong hệ thống."
     actions={<>
+      {user&&["SUPER_ADMIN","ADMIN"].includes(user.role)&&<Link to="/website-content?kind=BRANCH"><Button>Ảnh và nội dung website</Button></Link>}
       <Button icon={<RefreshCw size={16} />} onClick={resource.reload} loading={resource.loading}>Tải lại</Button>
       {canEdit && <Button type="primary" icon={<Plus size={16} />} onClick={() => openForm(null)}>Thêm chi nhánh</Button>}
     </>}>

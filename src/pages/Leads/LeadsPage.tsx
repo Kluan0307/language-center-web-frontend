@@ -1,3 +1,4 @@
+import LeadPreferencesModal from './LeadPreferencesModal';
 import {useListQuery} from '../../hooks/useListQuery';
 import TableActions from '../../components/Common/TableActions';
 import {useEffect,useState} from 'react';
@@ -39,12 +40,14 @@ export default function LeadsPage() {
   const manager=user?.role==='SUPER_ADMIN'||user?.role==='ADMIN';
   const canWrite=(lead:LeadDto)=>manager||user?.accountId===lead.assignedTo;
   const [care, setCare] = useState<LeadDto | null>(null);
+  const [preference,setPreference]=useState<LeadDto|null>(null);
   const [convert, setConvert] = useState<LeadDto | null>(null);
   function saved(lead: LeadDto, converted = false) {
-    setFormState(null); setCare(null);setAssignment(null); setConvert(null);
+    setFormState(null); setCare(null);setAssignment(null); setConvert(null);setPreference(null);setPreference(null);setPreference(null);setPreference(null);setPreference(null);setPreference(null);
     list.reload(); detail.reload(); setParams(p=>{const n=new URLSearchParams(p);n.set('leadId',String(lead.id));return n;});
-    message.success(converted ? 'Đã chuyển thành học viên. Hãy bổ sung hồ sơ và ghi danh lớp.' : 'Đã lưu thông tin Lead.');
+    message.success(converted ? 'Đã lưu kết quả tiếp nhận học viên.' : 'Đã lưu thông tin Lead.');
   }
+  function hasPendingIntake(lead:LeadDto){try{return !!sessionStorage.getItem('lc:intake:'+user?.accountId+':'+lead.id);}catch{return false;}}
   const actions = (lead: LeadDto) => <TableActions items={[
     ...((canWrite(lead) && lead.status !== 'CONVERTED') ? ([
         {
@@ -54,14 +57,15 @@ export default function LeadsPage() {
         },
         {
             key: "action-2", label: "Chăm sóc", icon: <PhoneCall size={14}/>, onClick: () => setCare(lead)
+        },{key:"preference",label:"Nhu cầu lớp",onClick:()=>setPreference(lead)
         }
     ]) : []), ...((manager && lead.status !== 'CONVERTED') ? ([
         {
             key: "action-3", label: "Phân công", onClick: () => setAssignment(lead)
         }
-    ]) : []), ...((canWrite(lead) && canConvertLead(lead.status)) ? ([
+    ]) : []), ...((canWrite(lead) && (canConvertLead(lead.status)||hasPendingIntake(lead))) ? ([
         {
-            key: "action-4", label: "Chuyển học viên", icon: <UserCheck size={14}/>, onClick: () => setConvert(lead)
+            key: "action-4", label: hasPendingIntake(lead)?"Kiểm tra tiếp nhận":"Tiếp nhận học viên", icon: <UserCheck size={14}/>, onClick: () => setConvert(lead)
         }
     ]) : []), ...((lead.convertedStudent) ? ([
         {
@@ -109,7 +113,7 @@ export default function LeadsPage() {
     <Drawer open={selectedId !== null} onClose={() => setParams(p=>{const n=new URLSearchParams(p);n.delete('leadId');return n;})} title="Thông tin Lead" size={680} loading={detail.loading}>
       <LoadError error={detail.error} reload={detail.reload} />
       {detail.data && <>
-        <Space wrap style={{ marginBottom: 20 }}>{actions(detail.data)}</Space>
+        <Space wrap style={{ marginBottom: 20 }}>{actions(detail.data)}{canWrite(detail.data)&&canConvertLead(detail.data.status)&&<Button type="primary" data-intake-primary onClick={()=>setConvert(detail.data!)}>Tiếp nhận học viên</Button>}</Space>
         <Descriptions bordered column={1} items={[
           {key:'next',label:'Hẹn liên hệ tiếp theo',children:displayDate(detail.data.nextContactAt)},
           { key: 'name', label: 'Họ tên', children: detail.data.fullName },
@@ -119,6 +123,8 @@ export default function LeadsPage() {
           { key: 'status', label: 'Trạng thái', children: <LeadTag value={detail.data.status} /> },
           { key: 'source', label: 'Nguồn', children: detail.data.source || '—' },
           { key: 'course', label: 'Khóa quan tâm', children: detail.data.interestedCourseName || '—' },
+          {key:'preferredClass',label:'Lớp mong muốn',children:detail.data.preferredClassName||'Chưa chọn'},
+          {key:'preferredTime',label:'Khung giờ phù hợp',children:detail.data.preferredTime||'Chưa cung cấp'},
           { key: 'level', label: 'Trình độ mong muốn', children: detail.data.desiredLevel || '—' },
           { key: 'owner', label: 'Phụ trách', children: detail.data.assignedToName },
           { key: 'created', label: 'Tiếp nhận', children: displayDate(detail.data.createdAt) },
@@ -132,6 +138,7 @@ export default function LeadsPage() {
       onClose={() => setFormState(null)} onSaved={saved} />}
     {assignment&&<AssignmentModal lead={assignment} onClose={()=>setAssignment(null)} onSaved={saved}/>}
     {care && <LeadUpdateModal lead={care} onClose={() => setCare(null)} onSaved={saved} />}
+    {preference&&<LeadPreferencesModal lead={preference} onClose={()=>setPreference(null)} onSaved={saved}/>}
     {convert && <ConvertToStudentModal lead={convert} onClose={() => setConvert(null)} onSaved={(lead) => saved(lead, true)} />}
   </ManagementLayout>;
 }

@@ -20,7 +20,7 @@ export const SidebarContainer = styled.aside`
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 20px 14px;
+    padding: 12px 14px 20px;
     box-sizing: border-box;
 `;
 
@@ -31,58 +31,6 @@ export const SidebarTop = styled.div`
     overflow: hidden;
     min-height: 0;
     flex: 1;
-`;
-
-export const Header = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 8px 16px 8px;
-    border-bottom: 1px solid #F1F5F9;
-`;
-
-export const AvatarWrapper = styled.div`
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 2px solid #E2E8F0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #F8FAFC;
-
-    img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-`;
-
-export const InfoWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    text-align: left;
-    overflow: hidden;
-`;
-
-export const UserName = styled.p`
-    font-size: 14px;
-    font-weight: 600;
-    color: #0F172A;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`;
-
-export const UserRole = styled.p`
-    font-size: 12px;
-    color: #64748B;
-    margin: 0;
-    font-weight: 500;
 `;
 
 export const Menu = styled.nav`
@@ -191,14 +139,6 @@ export const LogoutButton = styled.button`
         background-color: #FEF2F2;
     }
 `;
-export const MobileBar = styled.div`
- display:none;
- @media(max-width:900px){
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  position:fixed;inset:0 0 auto 0;height:56px;padding:8px 16px;background:#fff;
-  border-bottom:1px solid #e2e8f0;z-index:900;
- }
-`;
 export const FooterMenu = styled.nav`
  display:flex;flex-direction:column;gap:2px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid #F1F5F9;
 `;
@@ -208,3 +148,5 @@ export const FooterItem = styled.button`
  &.active{background:#EFF6FF;color:#2563EB;}
  &:focus-visible{outline:2px solid #2563EB;outline-offset:2px;}
 `;
+
+export const Brand=styled.a`display:flex;align-items:center;gap:10px;min-height:68px;padding:0 8px 12px;border-bottom:1px solid #e2e8f0;text-decoration:none;color:#0f172a;img{width:40px;height:40px;border-radius:10px;flex-shrink:0}span{font-size:14px;font-weight:750;letter-spacing:-.2px;line-height:1.4}small{display:block;font-size:10px;letter-spacing:1.3px;color:#64748b;font-weight:500;margin-top:2px}&:focus-visible{outline:2px solid #2563eb;outline-offset:2px;border-radius:8px}`;

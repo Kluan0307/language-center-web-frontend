@@ -8,7 +8,8 @@ export type FinalSummary = {
   studentId: number;
   revision: number;
   state: "CONFIRMED" | "REOPENED";
-  outcome: "PASS" | "FAIL";
+  outcome: "PASS" | "FAIL" | "ASSESSED";
+  gradingReleaseId?: number | null;
   confirmedAt: string;
   confirmedByName: string;
   reason: string;

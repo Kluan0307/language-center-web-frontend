@@ -35,7 +35,7 @@ export default function CompletionPanel({
         title={
           f?.state === "CONFIRMED"
             ? "Kết quả chính thức: " +
-              (f.outcome === "PASS" ? "Đạt" : "Chưa đạt") +
+              (f.outcome === "ASSESSED" ? "Đã hoàn thành đánh giá" : f.outcome === "PASS" ? "Đạt" : "Chưa đạt") +
               " · v" +
               f.revision
             : f
@@ -67,7 +67,7 @@ export default function CompletionPanel({
             to={
               "/grades?classId=" +
               record.classId +
-              "&view=final&enrollmentId=" +
+              (f?.gradingReleaseId ? "&view=schemes&enrollmentId=" : "&view=final&enrollmentId=") +
               record.id
             }
           >
